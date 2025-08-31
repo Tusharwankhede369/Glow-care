@@ -1,3 +1,4 @@
+require("dotenv").config()
 const express = require("express")
 const mongoose = require("mongoose")
 const bodyParser = require("body-parser")
@@ -70,10 +71,10 @@ const upload = multer({
 
 // Multer setup for avatar uploads
 const storageAvatar = multer.diskStorage({
-  destination: function (req, file, cb) {
+  destination: (req, file, cb) => {
     cb(null, path.join(__dirname, "uploads"))
   },
-  filename: function (req, file, cb) {
+  filename: (req, file, cb) => {
     const ext = path.extname(file.originalname)
     cb(null, `avatar_${req.user.userId}_${Date.now()}${ext}`)
   },
@@ -631,9 +632,9 @@ app.get("/products", async (req, res) => {
 
     // Price range filter
     if ((minPrice && minPrice !== "") || (maxPrice && maxPrice !== "")) {
-      filter.price = {};
-      if (minPrice && minPrice !== "") filter.price.$gte = Number(minPrice);
-      if (maxPrice && maxPrice !== "") filter.price.$lte = Number(maxPrice);
+      filter.price = {}
+      if (minPrice && minPrice !== "") filter.price.$gte = Number(minPrice)
+      if (maxPrice && maxPrice !== "") filter.price.$lte = Number(maxPrice)
     }
 
     // Search filter
@@ -880,8 +881,6 @@ app.get("/products/filters/options", async (req, res) => {
     res.status(500).json({ error: "Internal server error" })
   }
 })
-
-
 
 // ================================
 // UTILITY ROUTES
