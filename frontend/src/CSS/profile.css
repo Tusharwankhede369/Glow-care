@@ -1,0 +1,220 @@
+/* Profile background with subtle fade-in */
+.profile-bg {
+  min-height: 100vh;
+  width: 100%;
+  background: linear-gradient(135deg, #e3f0ff 0%, #f6fcff 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeInUpScale 0.6s ease forwards;
+  opacity: 0;
+}
+
+@keyframes fadeInUpScale {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Profile card with fade and slight upward slide */
+.profile-glass-card {
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 8px 32px rgba(32, 201, 151, 0.14);
+  backdrop-filter: blur(8px);
+  border: 1px solid #e3f0ff;
+  margin-top: 2rem;
+  padding: 2rem 2.5rem 2rem 2.5rem;
+  transform-origin: center;
+  animation: fadeInUp 0.7s ease forwards;
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Profile header flex adjustments */
+.profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2.5rem;
+  gap: 1.5rem;
+}
+
+.profile-header-left {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  flex-grow: 1;
+}
+
+/* Avatar hover scale animation */
+.profile-avatar-img-xl {
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #ddeeff;
+  background: #e9f4fb;
+  box-shadow: 0 2px 12px rgba(32, 201, 151, 0.10);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.profile-avatar-img-xl:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 25px rgba(32, 201, 151, 0.25);
+}
+
+/* Input focus animations */
+.profile-input {
+  background: #f3faff;
+  border: none;
+  border-radius: 9px;
+  padding: 0.8rem 1rem;
+  font-size: 1.05rem;
+  color: #222;
+  box-shadow: none;
+  outline: none;
+  transition: box-shadow 0.3s ease, background-color 0.3s ease;
+}
+
+.profile-input:focus {
+  box-shadow: 0 0 10px 3px #1976d231;
+  background-color: #e8f3ff;
+}
+
+/* Button hover and active animations */
+.profile-edit-btn,
+.profile-btn-primary,
+.profile-btn-secondary {
+  border-radius: 10px;
+  padding: 0.7rem 2.2rem;
+  font-weight: 600;
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.15s ease,
+    box-shadow 0.3s ease;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0 3px 10px rgba(25, 118, 210, 0.1);
+}
+
+.profile-edit-btn {
+  background: #1976d2;
+  color: #fff;
+  border: none;
+}
+
+.profile-edit-btn:hover {
+  background: #145caf;
+  box-shadow: 0 6px 20px rgba(25, 118, 210, 0.25);
+  transform: scale(1.05);
+}
+
+.profile-edit-btn:active {
+  transform: scale(0.97);
+  box-shadow: 0 3px 9px rgba(25, 118, 210, 0.2);
+}
+
+.profile-btn-primary {
+  background: #43e97b;
+  border: none;
+  color: #fff;
+  box-shadow: 0 4px 15px #43e97b80;
+}
+
+.profile-btn-primary:hover {
+  filter: brightness(0.9);
+  box-shadow: 0 8px 24px #43e97bcc;
+  transform: scale(1.05);
+}
+
+.profile-btn-primary:active {
+  transform: scale(0.97);
+  box-shadow: 0 3px 10px #2ca866cc;
+}
+
+.profile-btn-secondary {
+  background: #d3eaff;
+  border: none;
+  color: #1976d2;
+  box-shadow: 0 4px 15px #1976d280;
+}
+
+.profile-btn-secondary:hover {
+  filter: brightness(0.9);
+  opacity: 0.95;
+  transform: scale(1.05);
+}
+
+.profile-btn-secondary:active {
+  transform: scale(0.97);
+  opacity: 1;
+}
+
+/* Alert fade-in sliding */
+.alert {
+  animation: fadeSlideIn 0.5s ease forwards;
+  opacity: 0;
+  transform: translateY(-15px);
+}
+
+@keyframes fadeSlideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Profile form grid adjustments for alignment */
+.profile-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.75rem 2.5rem;
+}
+
+/* Make Email and Username span full width for neat layout */
+.profile-form-grid > div:nth-child(2),  /* Email */
+.profile-form-grid > div:nth-child(3) { /* Username */
+  grid-column: span 2;
+}
+
+/* Remove bottom margin inside form */
+.profile-form-grid > div {
+  margin-bottom: 0;
+}
+
+/* Responsive tweaks */
+@media (max-width: 900px) {
+  .profile-bg {
+    padding: 1.2rem 0.5rem;
+  }
+  .profile-glass-card {
+    padding: 1rem;
+  }
+  .profile-form-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .profile-form-grid > div:nth-child(2),
+  .profile-form-grid > div:nth-child(3) {
+    grid-column: span 1;
+  }
+}
+
+/* Profile labels */
+.profile-label {
+  font-weight: 600;
+  color: #1976d2;
+}

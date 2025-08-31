@@ -1,0 +1,28 @@
+<svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle for glow effect -->
+  <circle cx="30" cy="30" r="25" fill="url(#glowGradient)" opacity="0.3"/>
+  
+  <!-- Main logo icon - stylized leaf/flower for natural care -->
+  <path d="M20 15 C25 10, 35 10, 40 15 C45 20, 45 30, 40 35 C35 40, 25 40, 20 35 C15 30, 15 20, 20 15 Z" fill="url(#primaryGradient)"/>
+  <path d="M25 12 C28 8, 32 8, 35 12 C38 16, 38 24, 35 28 C32 32, 28 32, 25 28 C22 24, 22 16, 25 12 Z" fill="url(#secondaryGradient)"/>
+  
+  <!-- Text "Glow Care" -->
+  <text x="70" y="25" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#2E4D1F">Glow</text>
+  <text x="70" y="45" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#4A7C59">Care</text>
+  
+  <!-- Gradients -->
+  <defs>
+    <linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4A7C59;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2E4D1F;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="secondaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6B9B7A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4A7C59;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="glowGradient" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#E6F4EA;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4A7C59;stop-opacity:0.1" />
+    </radialGradient>
+  </defs>
+</svg>
