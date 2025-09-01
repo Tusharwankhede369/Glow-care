@@ -5,6 +5,7 @@ import { Container, Row, Col, Form, Button, Alert } from "react-bootstrap"
 import { Link, useNavigate } from "react-router-dom"
 import axios from "axios"
 import "./CSS/register.css"
+import { BASE_URL } from "./config"
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -35,7 +36,7 @@ const Register = () => {
 
     try {
       // Connect to your backend signup endpoint
-      await axios.post("http://localhost:5000/signup", formData)
+      await axios.post(`${BASE_URL}/signup`, formData)
 
       setSuccess("Account created successfully! Redirecting to login...")
 
