@@ -1,0 +1,98 @@
+/* Glow Care — storefront theme (fonts loaded from public/index.html) */
+:root {
+  --gc-font-body: "DM Sans", system-ui, -apple-system, sans-serif;
+  --gc-font-display: "Fraunces", Georgia, "Times New Roman", serif;
+
+  /* Warm cream aligned with footer palette (reads as one brand surface) */
+  --gc-bg: #f3efe6;
+  --gc-bg-muted: #ebe4d8;
+  --gc-surface: #faf8f2;
+  --gc-elevated: #e8e2d6;
+  --gc-border: #dcd4c8;
+  --gc-text: #1c1917;
+  --gc-muted: #57534e;
+  --gc-muted-soft: #78716c;
+
+  --gc-primary: #163822;
+  --gc-primary-hover: #102818;
+  --gc-accent: #b45309;
+  --gc-accent-soft: #fef3c7;
+  --gc-success: #15803d;
+  --gc-danger: #b91c1c;
+
+  --gc-shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.06);
+  --gc-shadow-md: 0 8px 24px rgba(28, 25, 23, 0.08);
+  --gc-radius: 12px;
+  --gc-radius-lg: 20px;
+}
+
+body {
+  font-family: var(--gc-font-body);
+  color: var(--gc-text);
+  background-color: var(--gc-bg);
+  line-height: 1.55;
+}
+
+main,
+.home-page,
+.shop-page,
+.product-page,
+.about,
+.contact-page,
+.gc-contact-page,
+.profile-bg,
+.gc-profile-page,
+.cart-page,
+.gc-cart-page {
+  background-color: var(--gc-bg) !important;
+}
+
+.card,
+.modal-content {
+  background-color: var(--gc-surface);
+  border-color: var(--gc-border);
+}
+
+h1,
+h2,
+h3,
+.gc-display {
+  font-family: var(--gc-font-display);
+  letter-spacing: -0.02em;
+}
+
+a {
+  color: var(--gc-primary);
+}
+
+a:hover {
+  color: var(--gc-accent);
+}
+
+/* Bootstrap alignment */
+.btn-primary {
+  background-color: var(--gc-primary);
+  border-color: var(--gc-primary);
+}
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: var(--gc-primary-hover);
+  border-color: var(--gc-primary-hover);
+}
+
+.btn-outline-primary {
+  color: var(--gc-primary);
+  border-color: var(--gc-primary);
+}
+.btn-outline-primary:hover {
+  background-color: var(--gc-primary);
+  border-color: var(--gc-primary);
+}
+
+.badge.bg-primary {
+  background-color: var(--gc-primary) !important;
+}
+
+.text-muted {
+  color: var(--gc-muted) !important;
+}

@@ -2,11 +2,15 @@
 import { useState, useEffect, useCallback } from "react"
 import { Container, Row, Col, Form, Badge, Card, Spinner, Alert, Button } from "react-bootstrap"
 import { FaPlus, FaMinus, FaShoppingCart, FaFilter } from "react-icons/fa"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import axios from "axios"
 import "./CSS/shop.css"
+import { BASE_URL } from "./config"
+import { resolveMediaUrl } from "./utils/media"
+import { formatUSD } from "./utils/format"
 
 const Shop = ({ cart, setCart }) => {
+  const [searchParams] = useSearchParams()
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
@@ -46,6 +50,20 @@ const Shop = ({ cart, setCart }) => {
 
   const navigate = useNavigate()
 
+  useEffect(() => {
+    const cat = searchParams.get("category")
+    const q = searchParams.get("search")
+    setFilters((prev) => {
+      const next = { ...prev }
+      if (cat !== null) next.category = cat
+      if (q !== null) next.search = q
+      return next
+    })
+    if (cat !== null || q !== null) {
+      setPagination((prev) => ({ ...prev, currentPage: 1 }))
+    }
+  }, [searchParams])
+
   // Calculate total items in cart
   useEffect(() => {
     const count = Object.values(cart).reduce((total, quantity) => total + quantity, 0)
@@ -59,7 +77,7 @@ const Shop = ({ cart, setCart }) => {
 
   const fetchFilterOptions = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/products/filters/options")
+      const response = await axios.get(`${BASE_URL}/products/filters/options`)
       setFilterOptions(response.data)
     } catch (error) {
       console.error("Error fetching filter options:", error)
@@ -77,7 +95,7 @@ const Shop = ({ cart, setCart }) => {
       })
       params.append("page", pagination.currentPage)
       params.append("limit", 12)
-      const response = await axios.get(`http://localhost:5000/products?${params}`)
+      const response = await axios.get(`${BASE_URL}/products?${params}`)
       setProducts(response.data.products || [])
       setPagination(response.data.pagination || {})
       setError("")
@@ -285,9 +303,9 @@ const Shop = ({ cart, setCart }) => {
             {error && <Alert variant="danger">{error}</Alert>}
 
             {/* Results Header */}
-            <section className="results-header mb-4">
-              <h4>Products ({pagination.totalProducts} found)</h4>
-              {Object.values(filters).some((filter) => filter) && (
+                <section className="results-header mb-4">
+              <h4>Products ({pagination.totalProducts ?? products.length} found)</h4>
+              {Object.entries(filters).some(([key, val]) => val && key !== "isNatural" && key !== "isCrueltyFree" && key !== "isVegan") && (
                 <p className="text-muted">Showing filtered results</p>
               )}
             </section>
@@ -325,7 +343,7 @@ const Shop = ({ cart, setCart }) => {
                         )}
                         <Card.Img
                           variant="top"
-                          src={product.image ? `http://localhost:5000${product.image}` : "/placeholder.svg"}
+                          src={resolveMediaUrl(product.image)}
                           alt={product.name}
                           className="product-image"
                           onError={(e) => {
@@ -338,9 +356,9 @@ const Shop = ({ cart, setCart }) => {
                             {product.category} • {product.brand}
                           </Card.Text>
                           <Card.Text className="product-price">
-                            ${product.price.toFixed(2)}
+                            {formatUSD(product.price)}
                             {product.originalPrice && (
-                              <span className="original-price">${product.originalPrice.toFixed(2)}</span>
+                              <span className="original-price">{formatUSD(product.originalPrice)}</span>
                             )}
                           </Card.Text>
 

@@ -15,6 +15,7 @@ const Register = () => {
     username: "",
     password: "",
   })
+
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const [loading, setLoading] = useState(false)
@@ -22,10 +23,10 @@ const Register = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
-    })
+    }))
   }
 
   const handleSubmit = async (e) => {
@@ -35,30 +36,37 @@ const Register = () => {
     setLoading(true)
 
     try {
-      // Connect to your backend signup endpoint
-      await axios.post(`${BASE_URL}/signup`, formData)
+      const res = await axios.post(`${BASE_URL}/signup`, formData, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
 
-      setSuccess("Account created successfully! Redirecting to login...")
-
-      // Redirect to login page after successful registration
-      setTimeout(() => {
-        navigate("/login")
-      }, 2000)
+      if (res.status === 201 || res.status === 200) {
+        setSuccess("Account created successfully! Redirecting to login...")
+        setTimeout(() => navigate("/login"), 2000)
+      }
     } catch (err) {
       console.error("Registration error:", err)
-      setError(err.response?.data?.error || "Registration failed. Please try again.")
+      setError(
+        err.response?.data?.error ||
+          err.response?.data?.message ||
+          "Registration failed. Please try again."
+      )
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <Container fluid className="min-vh-100 d-flex justify-content-center align-items-center bg-white">
+    <div className="register-page">
       <Container className="register-box p-5 shadow-sm">
         <Row>
           <Col className="text-center mb-4">
             <h3 className="register-title">Create Account</h3>
-            <p className="text-muted">Please Register using account detail below.</p>
+            <p className="text-muted">
+              Please register using account details below.
+            </p>
           </Col>
         </Row>
 
@@ -71,7 +79,6 @@ const Register = () => {
               type="text"
               name="name"
               placeholder="First Name"
-              className="custom-input"
               value={formData.name}
               onChange={handleChange}
               required
@@ -83,7 +90,6 @@ const Register = () => {
               type="text"
               name="middleName"
               placeholder="Middle Name (Optional)"
-              className="custom-input"
               value={formData.middleName}
               onChange={handleChange}
             />
@@ -94,7 +100,6 @@ const Register = () => {
               type="text"
               name="username"
               placeholder="Username"
-              className="custom-input"
               value={formData.username}
               onChange={handleChange}
               required
@@ -106,7 +111,6 @@ const Register = () => {
               type="email"
               name="email"
               placeholder="Email"
-              className="custom-input"
               value={formData.email}
               onChange={handleChange}
               required
@@ -118,31 +122,26 @@ const Register = () => {
               type="password"
               name="password"
               placeholder="Password"
-              className="custom-input"
               value={formData.password}
               onChange={handleChange}
               required
             />
           </Form.Group>
 
-          <Row className="mb-3">
-            <Col>
-              <Button className="btn-custom" type="submit" disabled={loading}>
-                {loading ? "Creating..." : "Create"}
-              </Button>
-            </Col>
-          </Row>
+          <Button
+            type="submit"
+            className="w-100"
+            disabled={loading}
+          >
+            {loading ? "Creating..." : "Create"}
+          </Button>
 
-          <Row>
-            <Col>
-              <Link to="/login" className="text-decoration-none">
-                Already have an account? Login
-              </Link>
-            </Col>
-          </Row>
+          <div className="text-center mt-3">
+            <Link to="/login">Already have an account? Login</Link>
+          </div>
         </Form>
       </Container>
-    </Container>
+    </div>
   )
 }
 

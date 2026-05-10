@@ -6,6 +6,12 @@ import "./CSS/product.css"
 import { FaShoppingCart } from "react-icons/fa"
 import { useNavigate, useParams } from "react-router-dom"
 import axios from "axios"
+import { BASE_URL } from "./config"
+import { DotLottieReact } from "@lottiefiles/dotlottie-react"
+import { resolveMediaUrl } from "./utils/media"
+import { formatUSD } from "./utils/format"
+
+const TRUST_LOTTIE = "https://lottie.host/1035f7ef-a131-4a7c-b320-636ec9e1e316/PvWGJQmbFV.lottie"
 
 const Product = ({ cart, setCart }) => {
   const navigate = useNavigate()
@@ -31,9 +37,9 @@ const Product = ({ cart, setCart }) => {
     const fetchProduct = async () => {
       try {
         setLoading(true)
-        const response = await axios.get(`http://localhost:5000/products/${id}`)
+        const response = await axios.get(`${BASE_URL}/products/${id}`)
         setProduct(response.data)
-        setMainImage(response.data.image ? `http://localhost:5000${response.data.image}` : "/placeholder.svg")
+        setMainImage(resolveMediaUrl(response.data.image))
         setError("")
         if (response.data.category) {
           fetchRelatedProducts(response.data.category, response.data._id)
@@ -53,7 +59,7 @@ const Product = ({ cart, setCart }) => {
     try {
       setRelatedLoading(true)
       const response = await axios.get(
-        `http://localhost:5000/products?category=${encodeURIComponent(category)}&limit=4`
+        `${BASE_URL}/products?category=${encodeURIComponent(category)}&limit=4`
       )
       const filtered = response.data.products.filter((p) => p._id !== currentProductId)
       setRelatedProducts(filtered)
@@ -67,7 +73,7 @@ const Product = ({ cart, setCart }) => {
   const fetchYouMayAlsoLike = async (currentProductId) => {
     try {
       setYouMayAlsoLikeLoading(true)
-      const response = await axios.get(`http://localhost:5000/products?limit=4`)
+      const response = await axios.get(`${BASE_URL}/products?limit=4`)
       const filtered = response.data.products.filter((p) => p._id !== currentProductId)
       const shuffled = filtered.sort(() => Math.random() - 0.5).slice(0, 4)
       setYouMayAlsoLike(shuffled)
@@ -182,10 +188,17 @@ const Product = ({ cart, setCart }) => {
   return (
     <main className="product-page">
       <Container>
-        <Row>
+        <Row className="align-items-start g-4">
           <Col md={6} className="product-images-container">
             <figure className="main-image-container">
-              <img src={mainImage || "/placeholder.svg"} alt={product.name} className="main-product-image" />
+              <img
+                src={mainImage || "/placeholder.svg"}
+                alt={product.name}
+                className="main-product-image"
+                onError={(e) => {
+                  e.currentTarget.src = "/placeholder.svg"
+                }}
+              />
             </figure>
           </Col>
 
@@ -198,8 +211,10 @@ const Product = ({ cart, setCart }) => {
                 {product.isCrueltyFree && <span className="badge bg-warning text-dark me-2">Cruelty Free</span>}
               </div>
               <p className="product-price">
-                <span className="current-price">₹{product.price}</span>
-                {product.originalPrice && <span className="original-price ms-2">₹{product.originalPrice}</span>}
+                <span className="current-price">{formatUSD(product.price)}</span>
+                {product.originalPrice && (
+                  <span className="original-price ms-2">{formatUSD(product.originalPrice)}</span>
+                )}
               </p>
               <p className="product-availability">{product.availability}</p>
               <section className="quantity-selection">
@@ -240,6 +255,33 @@ const Product = ({ cart, setCart }) => {
           </Col>
         </Row>
 
+        {product.description && (
+          <section className="product-description-block gc-product-detail-section">
+            <h2 className="gc-section-heading">Product details</h2>
+            <p className="product-description-text">{product.description}</p>
+          </section>
+        )}
+
+        <section className="gc-trust-strip" aria-label="Shopping benefits">
+          <div className="gc-trust-strip__lottie" aria-hidden="true">
+            <DotLottieReact src={TRUST_LOTTIE} loop autoplay style={{ width: 120, height: 120 }} />
+          </div>
+          <div className="gc-trust-strip__grid">
+            <div>
+              <h3 className="gc-trust-strip__title">US shipping</h3>
+              <p className="gc-trust-strip__text">Flat-rate delivery; free over $999 on qualifying orders.</p>
+            </div>
+            <div>
+              <h3 className="gc-trust-strip__title">Clean formulas</h3>
+              <p className="gc-trust-strip__text">Cruelty-free options clearly labeled on every product page.</p>
+            </div>
+            <div>
+              <h3 className="gc-trust-strip__title">Care team</h3>
+              <p className="gc-trust-strip__text">Reach us Mon–Sat for order help and product questions.</p>
+            </div>
+          </div>
+        </section>
+
         <section className="related-products">
           <h2 className="section-title">Related Products</h2>
           <p className="section-subtitle">You can check the related product for your shopping collection.</p>
@@ -256,13 +298,22 @@ const Product = ({ cart, setCart }) => {
                   <article className="product-card">
                     {product.discount > 0 && <span className="product-badge sale">SALE</span>}
                     <figure className="product-image">
-                      <img src={`http://localhost:5000${product.image}` || "/placeholder.svg"} alt={product.name} className="product-thumbnail" />
+                      <img
+                        src={resolveMediaUrl(product.image)}
+                        alt={product.name}
+                        className="product-thumbnail"
+                        onError={(e) => {
+                          e.currentTarget.src = "/placeholder.svg"
+                        }}
+                      />
                     </figure>
                     <section className="product-card-body">
                       <h3 className="product-card-title">{product.name}</h3>
                       <p className="product-card-price">
-                        ₹{product.price}
-                        {product.originalPrice && <span className="original-price"> ₹{product.originalPrice}</span>}
+                        {formatUSD(product.price)}
+                        {product.originalPrice && (
+                          <span className="original-price"> {formatUSD(product.originalPrice)}</span>
+                        )}
                       </p>
                       <button
                         className="quick-add-btn"
@@ -299,13 +350,22 @@ const Product = ({ cart, setCart }) => {
                 <article className="product-card">
                   {product.discount > 0 && <span className="product-badge sale">SALE</span>}
                   <figure className="product-image">
-                    <img src={`http://localhost:5000${product.image}` || "/placeholder.svg"} alt={product.name} className="product-thumbnail" />
+                    <img
+                      src={resolveMediaUrl(product.image)}
+                      alt={product.name}
+                      className="product-thumbnail"
+                      onError={(e) => {
+                        e.currentTarget.src = "/placeholder.svg"
+                      }}
+                    />
                   </figure>
                   <section className="product-card-body">
                     <h3 className="product-card-title">{product.name}</h3>
                     <p className="product-card-price">
-                      ₹{product.price}
-                      {product.originalPrice && <span className="original-price"> ₹{product.originalPrice}</span>}
+                      {formatUSD(product.price)}
+                      {product.originalPrice && (
+                        <span className="original-price"> {formatUSD(product.originalPrice)}</span>
+                      )}
                     </p>
                     <button
                       className="quick-add-btn"
@@ -341,7 +401,9 @@ const Product = ({ cart, setCart }) => {
                   <p>
                     {addedProduct.quantity} {addedProduct.quantity > 1 ? "items" : "item"} added to your cart
                   </p>
-                  <p className="added-product-price">Total: ₹{(addedProduct.price * addedProduct.quantity).toFixed(2)}</p>
+                  <p className="added-product-price">
+                    Total: {formatUSD(addedProduct.price * addedProduct.quantity)}
+                  </p>
                 </div>
               </div>
             )}

@@ -17,6 +17,10 @@ import AdminDashboard from "./AdminDashboard"
 import AdminLoginpro from "./admin-login"
 import Profile from "./profile"
 import axios from "axios"
+import { BASE_URL } from "./config"
+import ForgotPassword from "./auth/ForgotPassword"
+import ResetPassword from "./auth/ResetPassword"
+import VerifyEmail from "./auth/VerifyEmail"
 
 // Authentication wrapper to protect routes
 function RequireAuth({ children }) {
@@ -32,6 +36,46 @@ function RequireAuth({ children }) {
   return children
 }
 
+function RequireAdmin({ children }) {
+  const location = useLocation()
+  const token = typeof window !== "undefined" ? localStorage.getItem("adminToken") : null
+  if (!token) return <Navigate to="/admin/login" replace state={{ from: location }} />
+  return children
+}
+
+function AppShell({ cart, setCart, user, setUser }) {
+  const location = useLocation()
+  const showStoreChrome = !location.pathname.startsWith("/admin")
+  const cartItemCount = Object.values(cart).reduce((total, quantity) => total + quantity, 0)
+
+  return (
+    <>
+      {showStoreChrome && <Navbar cartItemCount={cartItemCount} user={user} setUser={setUser} />}
+      <Routes>
+        <Route path="/login" element={<Login setUser={setUser} />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/admin/login" element={<AdminLoginpro />} />
+        <Route path="/admin/register" element={<AdminRegister />} />
+
+        <Route path="/" element={<RequireAuth><Home cart={cart} setCart={setCart} /></RequireAuth>} />
+        <Route path="/shop" element={<RequireAuth><Shop cart={cart} setCart={setCart} /></RequireAuth>} />
+        <Route path="/product/:id" element={<RequireAuth><Product cart={cart} setCart={setCart} /></RequireAuth>} />
+        <Route path="/blog" element={<RequireAuth><h2>Blog Page</h2></RequireAuth>} />
+        <Route path="/about" element={<RequireAuth><About /></RequireAuth>} />
+        <Route path="/contact" element={<RequireAuth><Contact /></RequireAuth>} />
+        <Route path="/cart" element={<RequireAuth><Cart cart={cart} setCart={setCart} /></RequireAuth>} />
+        <Route path="/admin/dashboard" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
+        <Route path="/profile" element={<RequireAuth><Profile cart={cart} /></RequireAuth>} />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      {showStoreChrome && <Footer />}
+    </>
+  )
+}
 
 function Project() {
   const [cart, setCart] = useState({})
@@ -55,22 +99,14 @@ function Project() {
     localStorage.setItem("cart", JSON.stringify(cart))
   }, [cart])
 
-  // Setup axios header with token if available
-  useEffect(() => {
-    const token = localStorage.getItem("token")
-    if (token) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`
-    } else {
-      delete axios.defaults.headers.common["Authorization"]
-    }
-  }, [])
+  // Authorization for axios is handled in axiosSetup.js (shop vs admin tokens).
 
   // Fetch user profile on mount if token exists
   useEffect(() => {
     const token = localStorage.getItem("token")
     if (token) {
       axios
-        .get("http://localhost:5000/profile", {
+        .get(`${BASE_URL}/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then((res) => setUser(res.data))
@@ -85,33 +121,9 @@ function Project() {
     }
   }, [])
 
-  const cartItemCount = Object.values(cart).reduce((total, quantity) => total + quantity, 0)
-
   return (
     <Router>
-      <Navbar cartItemCount={cartItemCount} user={user} setUser={setUser} />
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/login" element={<Login setUser={setUser} />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/admin/login" element={<AdminLoginpro />} />
-        <Route path="/admin/register" element={<AdminRegister />} />
-
-        {/* Protected Routes */}
-        <Route path="/" element={<RequireAuth><Home cart={cart} setCart={setCart} /></RequireAuth>} />
-        <Route path="/shop" element={<RequireAuth><Shop cart={cart} setCart={setCart} /></RequireAuth>} />
-        <Route path="/product/:id" element={<RequireAuth><Product cart={cart} setCart={setCart} /></RequireAuth>} />
-        <Route path="/blog" element={<RequireAuth><h2>Blog Page</h2></RequireAuth>} />
-        <Route path="/about" element={<RequireAuth><About /></RequireAuth>} />
-        <Route path="/contact" element={<RequireAuth><Contact /></RequireAuth>} />
-        <Route path="/cart" element={<RequireAuth><Cart cart={cart} setCart={setCart} /></RequireAuth>} />
-        <Route path="/admin/dashboard" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
-        <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
-
-        {/* Redirect unknown routes to home or custom 404 */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-      <Footer />
+      <AppShell cart={cart} setCart={setCart} user={user} setUser={setUser} />
     </Router>
   )
 }

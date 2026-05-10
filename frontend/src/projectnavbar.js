@@ -4,9 +4,9 @@ import { useState } from "react"
 import { Navbar, Nav, Container, Badge, Form, InputGroup, Button, Dropdown } from "react-bootstrap"
 import { Link, useNavigate } from "react-router-dom"
 import { FaShoppingCart, FaSearch, FaUserCircle, FaSignOutAlt } from "react-icons/fa"
-import { DotLottieReact } from "@lottiefiles/dotlottie-react"
 import "bootstrap/dist/css/bootstrap.min.css"
 import "./CSS/projectnavbar.css" // Ensure this CSS file is in the same directory
+import GlowCareLogo from "./GlowCareLogo"
 
 
 const Navigation = ({ cartItemCount = 0, user, setUser }) => {
@@ -27,25 +27,18 @@ const Navigation = ({ cartItemCount = 0, user, setUser }) => {
     }
   }
 
+  const handleOpenProfile = () => {
+    navigate("/profile")
+  }
+
   return (
-    <Navbar expand="lg" className="py-4 border-bottom sticky-navbar fresh-navbar">
+    <Navbar expand="lg" variant="light" className="py-3 border-bottom sticky-navbar fresh-navbar">
       <Container fluid className="px-4">
         {" "}
         {/* Use fluid for full width, adjust padding */}
         {/* Logo */}
-        <Navbar.Brand as={Link} to="/" className="navbar-brand">
-          <span className="logo-animation-wrapper">
-            {" "}
-            {/* Wrapper for animation */}
-            <DotLottieReact
-              src="https://lottie.host/2e2e2e2e-2e2e-2e2e-2e2e-2e2e2e2e2e2e/leaf.json"
-              loop
-              autoplay
-              className="lottie-logo"
-            />
-          </span>
-          <span className="fresh-text">Glow</span>
-          <span className="basket-text">Care</span>
+        <Navbar.Brand as={Link} to="/" className="navbar-brand d-flex align-items-center text-decoration-none">
+          <GlowCareLogo compact tone="nav" />
         </Navbar.Brand>
         {/* Search Bar - Desktop */}
         <div className="search-container d-none d-lg-flex mx-4 flex-grow-1">
@@ -135,7 +128,7 @@ const Navigation = ({ cartItemCount = 0, user, setUser }) => {
                     </div>
                   </div>
                   <Dropdown.Divider />
-                  <Dropdown.Item as={Link} to="/profile" className="d-flex align-items-center">
+                  <Dropdown.Item onClick={handleOpenProfile} className="d-flex align-items-center">
                     <FaUserCircle className="me-2" /> Profile
                   </Dropdown.Item>
                   <Dropdown.Item onClick={handleLogout} className="d-flex align-items-center">

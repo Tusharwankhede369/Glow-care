@@ -1,19 +1,24 @@
-/* Updated CSS with gradient background, animations, and color combos */
-
-body {
-  font-family: 'Segoe UI', sans-serif;
-  background: linear-gradient(135deg, #74ebd5 0%, #acb6e5 100%);
+/* Scoped to registration page only — never style global `body` here (breaks site scroll after visiting /register). */
+.register-page {
+  font-family: "Segoe UI", sans-serif;
   margin: 0;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #74ebd5 0%, #acb6e5 100%);
+  overflow-x: hidden;
+  overflow-y: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  box-sizing: border-box;
 }
 
 .register-box {
-  background-color: #ffffffcc; /* semi-transparent white */
+  background-color: #ffffffcc;
   max-width: 500px;
   border-radius: 12px;
   padding: 3rem 2.5rem;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
   animation: fadeInScale 0.6s ease forwards;
 }
 
@@ -66,19 +71,18 @@ body {
   transform: scale(1.05);
 }
 
-a.text-decoration-none {
+.register-page a.text-decoration-none {
   color: #fa8072;
   font-weight: 500;
   transition: color 0.3s ease;
 }
 
-a.text-decoration-none:hover {
+.register-page a.text-decoration-none:hover {
   color: #7cc242;
   text-decoration: underline;
 }
 
-/* Alert animation */
-.alert {
+.register-page .alert {
   animation: slideDownFade 0.5s ease forwards;
   border-radius: 8px;
 }

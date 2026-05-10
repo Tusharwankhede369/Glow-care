@@ -1,35 +1,94 @@
 .glowcare-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+}
+
+.glowcare-logo__mark {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #1a3a2d 0%, #244b3a 100%);
+  border: 1px solid rgba(255, 231, 176, 0.65);
+  box-shadow: 0 6px 14px rgba(16, 40, 24, 0.24);
   display: flex;
   align-items: center;
-  gap: 6px; /* increased gap */
   justify-content: center;
 }
 
-.lottie-wrapper {
-  width: 60px; /* increased size */
-  height: 60px; /* increased size */
-  filter: drop-shadow(0 0 5px #0f766e88);
+.glowcare-logo--compact .glowcare-logo__mark {
+  width: 38px;
+  height: 38px;
 }
 
-.lottie-logo {
-  width: 100%;
-  height: 100%;
-}
-
-.logo-text {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+.glowcare-logo__monogram {
+  font-family: var(--gc-font-display, "Fraunces", Georgia, serif);
+  font-size: 0.86rem;
   font-weight: 700;
-  font-size: 2rem; /* increased font size */
-  user-select: none;
+  letter-spacing: 0.03em;
+  color: #f7e6ba;
+}
+
+.glowcare-logo__text {
   display: flex;
-  gap: 6px;
-  color: #0f766e;
+  gap: 0.25rem;
+  align-items: baseline;
+  font-family: var(--gc-font-display, "Fraunces", Georgia, serif);
+  font-weight: 600;
+  font-size: 1.65rem;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  user-select: none;
+  text-shadow: none;
 }
 
-.glow-text {
-  color: #f3f5f5; /* Brand teal */
+.glowcare-logo--compact .glowcare-logo__text {
+  font-size: 1.2rem;
 }
 
-.care-text {
-  color: #b8e2c6; /* Bright accent green */
+.glowcare-logo__glow {
+  color: #173226;
+}
+
+.glowcare-logo__care {
+  color: #9a4d11;
+}
+
+.glowcare-logo__spark {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffd77b 0%, #b45309 80%);
+  box-shadow: 0 0 10px rgba(255, 215, 123, 0.8);
+  align-self: flex-start;
+  margin-top: 0.2rem;
+}
+
+.glowcare-logo--nav .glowcare-logo__text {
+  background: transparent;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+}
+
+.glowcare-logo--nav .glowcare-logo__glow {
+  color: #fff6df;
+}
+
+.glowcare-logo--nav .glowcare-logo__care {
+  color: #f1c86a;
+}
+
+.glowcare-logo--nav .glowcare-logo__mark {
+  background: linear-gradient(145deg, #f4d488 0%, #d9a94e 100%);
+  border-color: rgba(255, 255, 255, 0.48);
+  box-shadow: 0 8px 18px rgba(16, 40, 24, 0.36);
+}
+
+.glowcare-logo--nav .glowcare-logo__monogram {
+  color: #173226;
 }

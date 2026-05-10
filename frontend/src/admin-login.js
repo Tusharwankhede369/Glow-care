@@ -5,6 +5,7 @@ import { Container, Row, Col, Form, Button, Alert, Card } from "react-bootstrap"
 import { useNavigate } from "react-router-dom"
 import axios from "axios"
 import "./CSS/admin.css"
+import { BASE_URL } from "./config"
 
 const AdminLoginpro = () => {
   const [formData, setFormData] = useState({
@@ -29,7 +30,7 @@ const AdminLoginpro = () => {
     setLoading(true)
 
     try {
-      const response = await axios.post("http://localhost:5000/admin/login", formData)
+      const response = await axios.post(`${BASE_URL}/admin/login`, formData)
 
       // Store admin token
       localStorage.setItem("adminToken", response.data.token)

@@ -15,18 +15,19 @@ import {
   FaPercent,
 } from "react-icons/fa"
 import axios from "axios"
+import { DotLottieReact } from "@lottiefiles/dotlottie-react"
+import { BASE_URL } from "./config"
+import { resolveMediaUrl } from "./utils/media"
+import { formatUSD } from "./utils/format"
 import "./CSS/home.css"
 
-// Import banner images - Fixed paths
-import banner1 from "./images/home page banner.png"
-import banner2 from "./images/homepagebanner2.png"
-import banner3 from "./images/homepagebanner3.png"
-
-// Import category images - Fixed paths
-import premiumGiftSet1 from "./images/premium giftset.png"
-import premiumGiftSet2 from "./images/premiumgiftset2.png"
-import premiumGiftSet3 from "./images/premiumgiftset3.png"
-import premiumGiftSet4 from "./images/premiumgiftset4.png"
+const banner1 = "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=max&w=1600&q=82"
+const banner2 = "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=max&w=1600&q=82"
+const banner3 = "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=max&w=1600&q=82"
+const premiumGiftSet1 = "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=max&w=800&q=82"
+const premiumGiftSet2 = "https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=max&w=800&q=82"
+const premiumGiftSet3 = "https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=max&w=800&q=82"
+const premiumGiftSet4 = "https://images.unsplash.com/photo-1601612628452-9e99ced43524?auto=format&fit=max&w=800&q=82"
 
 const Home = ({ cart = {}, setCart = () => {} }) => {
   const [bestSaleProducts, setBestSaleProducts] = useState([])
@@ -58,9 +59,8 @@ const Home = ({ cart = {}, setCart = () => {} }) => {
     try {
       setLoading(true)
       setError("")
-      const response = await axios.get("http://localhost:5000/products?limit=20")
+      const response = await axios.get(`${BASE_URL}/products?limit=20`)
       const allProducts = response.data.products || response.data
-      console.log("Fetched products:", allProducts)
 
       // Filter products for best sale (products with originalPrice/discount)
       const saleProducts = allProducts
@@ -111,7 +111,6 @@ const Home = ({ cart = {}, setCart = () => {} }) => {
       }
 
       localStorage.setItem("cart", JSON.stringify(updatedCart))
-      console.log("Cart updated:", updatedCart)
 
       if (changeAmount > 0) {
         setToastMessage(`${product.name} added to cart!`)
@@ -152,7 +151,7 @@ const Home = ({ cart = {}, setCart = () => {} }) => {
         <div className="product-image-container">
           <Card.Img
             variant="top"
-            src={product.image ? `http://localhost:5000${product.image}` : "/placeholder.svg"}
+            src={resolveMediaUrl(product.image)}
             alt={product.name}
             className="product-image"
             onError={(e) => {
@@ -174,9 +173,9 @@ const Home = ({ cart = {}, setCart = () => {} }) => {
               <span className="review-count">({product.numReviews || 0})</span>
             </div>
             <Card.Text className="product-price">
-              Rs. {product.price.toFixed(2)}
+              {formatUSD(product.price)}
               {product.originalPrice && (
-                <span className="original-price ms-2">Rs. {product.originalPrice.toFixed(2)}</span>
+                <span className="original-price ms-2">{formatUSD(product.originalPrice)}</span>
               )}
             </Card.Text>
           </div>
@@ -227,18 +226,26 @@ const Home = ({ cart = {}, setCart = () => {} }) => {
     )
   }
 
-  // Category Card Component
   const CategoryCard = ({ image, title, subtitle, link }) => (
-    <Link to={link} className="category-card-link">
-      <div className="main-category-card">
-        <div className="category-image-container">
-          <img src={image || "/placeholder.svg"} alt={title} className="main-category-image" />
+    <Link to={link} className="gc-category-card-link">
+      <article className="gc-category-card">
+        <div className="gc-category-card__media">
+          <img
+            src={image || "/placeholder.svg"}
+            alt=""
+            className="gc-category-card__img"
+            loading="lazy"
+            decoding="async"
+            onError={(e) => {
+              e.currentTarget.src = "/placeholder.svg"
+            }}
+          />
         </div>
-        <div className="category-content">
-          <h3 className="category-main-title">{title}</h3>
-          {subtitle && <p className="category-subtitle">{subtitle}</p>}
+        <div className="gc-category-card__footer">
+          <h3 className="gc-category-card__title">{title}</h3>
+          {subtitle ? <p className="gc-category-card__sub">{subtitle}</p> : null}
         </div>
-      </div>
+      </article>
     </Link>
   )
 
@@ -281,20 +288,48 @@ const Home = ({ cart = {}, setCart = () => {} }) => {
       )}
 
       {/* Top Category Cards Section */}
-      <section className="top-categories-section">
+      <section className="top-categories-section" aria-labelledby="home-categories-heading">
         <Container>
-          <Row className="g-3">
+          <div className="gc-category-intro">
+            <h2 id="home-categories-heading" className="gc-category-intro__title">
+              Shop by category
+            </h2>
+            <p className="gc-category-intro__text">
+              Curated edits that match our warm in-store palette — tap through to the full catalog.
+            </p>
+          </div>
+          <Row className="g-3 g-lg-4">
             <Col lg={3} md={6} sm={6}>
-              <CategoryCard image={premiumGiftSet4} title="GROOMING RANGE" link="/shop?category=grooming" />
+              <CategoryCard
+                image={premiumGiftSet4}
+                title="Grooming range"
+                subtitle="Hair & body care"
+                link="/shop?category=Haircare"
+              />
             </Col>
             <Col lg={3} md={6} sm={6}>
-              <CategoryCard image={premiumGiftSet1} title="PERFUME RANGE" link="/shop?category=perfume" />
+              <CategoryCard
+                image={premiumGiftSet1}
+                title="Perfume range"
+                subtitle="Scents & layering"
+                link="/shop?category=Perfume"
+              />
             </Col>
             <Col lg={3} md={6} sm={6}>
-              <CategoryCard image={premiumGiftSet2} title="PREMIUM GIFT SET" link="/shop?category=gift-sets" />
+              <CategoryCard
+                image={premiumGiftSet2}
+                title="Premium gift set"
+                subtitle="Ready to gift"
+                link="/shop?search=gift"
+              />
             </Col>
             <Col lg={3} md={6} sm={6}>
-              <CategoryCard image={premiumGiftSet3} title="PERSONALISED GIFT BOX" link="/shop?category=personalised" />
+              <CategoryCard
+                image={premiumGiftSet3}
+                title="Personalised gift box"
+                subtitle="Make it theirs"
+                link="/shop?search=personalised"
+              />
             </Col>
           </Row>
         </Container>
@@ -303,6 +338,14 @@ const Home = ({ cart = {}, setCart = () => {} }) => {
       {/* Hero Banner Section with Image Carousel */}
       <section className="hero-banner-section">
         <Container>
+          <div className="d-flex justify-content-center mb-3">
+            <DotLottieReact
+              src="https://lottie.host/8b5f2f5f-dde9-4e32-8dfa-56fbc22969ca/vaF6P2uDi1.lottie"
+              loop
+              autoplay
+              style={{ width: 160, height: 160 }}
+            />
+          </div>
           <div className="hero-banner">
             <button
               className="hero-nav-btn hero-nav-left"
@@ -320,11 +363,12 @@ const Home = ({ cart = {}, setCart = () => {} }) => {
             {/* Full Image Display */}
             <div className="hero-image-full">
               <img
+                key={currentBanner}
                 src={bannerImages[currentBanner] || "/placeholder.svg"}
-                alt={`Banner ${currentBanner + 1}`}
+                alt={`Glow Care spotlight ${currentBanner + 1}`}
                 className="hero-banner-image-full"
                 onError={(e) => {
-                  e.target.src = "/placeholder.svg?height=400&width=600"
+                  e.currentTarget.src = "/placeholder.svg"
                 }}
               />
             </div>

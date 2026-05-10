@@ -5,6 +5,7 @@ import { Container, Row, Col, Form, Button, Alert, Card } from "react-bootstrap"
 import { useNavigate } from "react-router-dom"
 import axios from "axios"
 import "./CSS/admin.css"
+import { BASE_URL } from "./config"
 
 const AdminRegister = () => {
   const [formData, setFormData] = useState({
@@ -43,7 +44,7 @@ const AdminRegister = () => {
 
     setLoading(true)
     try {
-      await axios.post("http://localhost:5000/admin/register", {
+      await axios.post(`${BASE_URL}/admin/register`, {
         name: formData.name,
         email: formData.email,
         password: formData.password,

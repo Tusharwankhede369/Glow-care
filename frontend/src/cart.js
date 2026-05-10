@@ -1,21 +1,31 @@
 "use client"
 import { useState, useEffect, useCallback } from "react"
-import { Container, Row, Col, Table, Button, Form, Spinner, Alert } from "react-bootstrap"
-import { FaTrash, FaShoppingCart } from "react-icons/fa"
-import { useNavigate } from "react-router-dom"
+import { Container, Row, Col, Button, Form, Spinner, Alert } from "react-bootstrap"
+import { FaTrash, FaShoppingCart, FaArrowRight } from "react-icons/fa"
+import { Link, useNavigate } from "react-router-dom"
 import axios from "axios"
-import "./CSS/cart.css" // Re-added CSS import
+import "./CSS/cart.css"
+import { BASE_URL } from "./config"
+import { resolveMediaUrl } from "./utils/media"
+import { formatUSD } from "./utils/format"
+
+const SHIPPING_FLAT = 79
+const FREE_SHIPPING_AT = 999
 
 const Cart = ({ cart, setCart }) => {
   const [cartItems, setCartItems] = useState([])
   const [subtotal, setSubtotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [notice, setNotice] = useState("")
   const navigate = useNavigate()
 
-  // Fetch product details and calculate cart items whenever cart changes
+  const shipping = subtotal > FREE_SHIPPING_AT ? 0 : subtotal > 0 ? SHIPPING_FLAT : 0
+  const orderTotal = subtotal + shipping
+
   const fetchCartItems = useCallback(async () => {
-    if (Object.keys(cart).length === 0) {
+    const productIds = Object.keys(cart || {}).filter((id) => Number(cart[id]) > 0)
+    if (productIds.length === 0) {
       setCartItems([])
       setSubtotal(0)
       setLoading(false)
@@ -25,48 +35,36 @@ const Cart = ({ cart, setCart }) => {
     try {
       setLoading(true)
       setError("")
+      const results = await Promise.all(
+        productIds.map((productId) =>
+          axios.get(`${BASE_URL}/products/${productId}`).then((r) => r.data).catch(() => null)
+        )
+      )
 
-      // Get all product IDs from cart
-      const productIds = Object.keys(cart)
-      console.log("Fetching products for cart:", productIds) // Debug log
-
-      // FIXED: Fetch from actual API instead of using mock data
-      const response = await axios.get("http://localhost:5000/products")
-      const allProducts = response.data.products || response.data
-      console.log("All products fetched from API:", allProducts.length) // Debug log
-
-      // Filter products that are in the cart
       const items = []
       let total = 0
-
-      productIds.forEach((productId) => {
-        const product = allProducts.find((p) => p._id === productId)
-        console.log(`Looking for product ${productId}:`, product ? "found" : "not found") // Debug log
-
-        if (product && cart[productId] > 0) {
-          const quantity = cart[productId]
-          const itemTotal = product.price * quantity
-          total += itemTotal
-
-          items.push({
-            id: product._id, // Use _id from backend
-            name: product.name,
-            price: product.price,
-            image: product.image,
-            quantity,
-            total: itemTotal,
-            category: product.category,
-            brand: product.brand,
-          })
-        }
+      productIds.forEach((productId, i) => {
+        const product = results[i]
+        if (!product) return
+        const quantity = Number(cart[productId]) || 0
+        if (quantity < 1) return
+        const line = product.price * quantity
+        total += line
+        items.push({
+          id: product._id,
+          name: product.name,
+          price: product.price,
+          image: product.image,
+          quantity,
+          total: line,
+          category: product.category,
+          brand: product.brand,
+        })
       })
-
-      console.log("Cart items processed:", items) // Debug log
       setCartItems(items)
       setSubtotal(total)
     } catch (err) {
-      console.error("Error fetching cart items:", err)
-      setError("Failed to load cart items. Please try again.")
+      setError("We couldn’t load your cart. Please refresh or try again.")
     } finally {
       setLoading(false)
     }
@@ -74,54 +72,47 @@ const Cart = ({ cart, setCart }) => {
 
   useEffect(() => {
     fetchCartItems()
-  }, [cart, fetchCartItems])
+  }, [fetchCartItems])
 
-  // Update quantity of an item
   const updateQuantity = (productId, newQuantity) => {
     if (newQuantity < 1) newQuantity = 1
     setCart((prevCart) => {
       const newCart = { ...prevCart, [productId]: newQuantity }
-      localStorage.setItem("cart", JSON.stringify(newCart)) // Persist to localStorage
+      localStorage.setItem("cart", JSON.stringify(newCart))
       return newCart
     })
   }
 
-  // Remove an item from cart
   const removeItem = (productId) => {
     setCart((prevCart) => {
       const newCart = { ...prevCart }
       delete newCart[productId]
-      localStorage.setItem("cart", JSON.stringify(newCart)) // Persist to localStorage
+      localStorage.setItem("cart", JSON.stringify(newCart))
       return newCart
     })
   }
 
-  // Clear the entire cart
   const clearCart = () => {
     setCart({})
-    localStorage.setItem("cart", JSON.stringify({})) // Clear localStorage
+    localStorage.setItem("cart", JSON.stringify({}))
   }
 
-  // Update cart (placeholder for future functionality like saving to server)
-  const updateCart = () => {
-    localStorage.setItem("cart", JSON.stringify(cart))
-    alert("Cart updated successfully!")
+  const syncNotice = () => {
+    setNotice("Cart saved.")
+    setTimeout(() => setNotice(""), 2500)
   }
 
-  // Continue shopping
   const continueShopping = () => {
-    navigate("/shop") // Assuming a /shop route exists in your app
+    navigate("/shop")
   }
 
   if (loading) {
     return (
-      <main className="cart-page">
+      <main className="gc-cart-page">
         <Container>
-          <div className="text-center py-5">
-            <Spinner animation="border" role="status">
-              <span className="visually-hidden">Loading...</span>
-            </Spinner>
-            <p className="mt-2">Loading cart...</p>
+          <div className="gc-cart-loading text-center py-5">
+            <Spinner animation="border" role="status" className="text-primary" />
+            <p className="mt-3 text-muted mb-0">Loading your bag…</p>
           </div>
         </Container>
       </main>
@@ -129,135 +120,159 @@ const Cart = ({ cart, setCart }) => {
   }
 
   return (
-    <main className="cart-page">
+    <main className="gc-cart-page">
       <Container>
-        <h1 className="cart-title">Shopping Cart</h1>
+        <header className="gc-cart-header">
+          <h1 className="gc-cart-title">Your bag</h1>
+          <p className="gc-cart-lead text-muted">
+            Prices and availability match our catalog. Checkout uses the same totals you see here.
+          </p>
+        </header>
 
+        {notice && <Alert variant="success" className="gc-cart-alert">{notice}</Alert>}
         {error && (
-          <Alert variant="danger" className="mb-4">
+          <Alert variant="danger" className="gc-cart-alert">
             {error}
           </Alert>
         )}
 
         {cartItems.length === 0 ? (
-          <div className="empty-cart">
-            <FaShoppingCart className="empty-cart-icon" />
-            <h2>Your cart is empty</h2>
-            <p>Looks like you haven't added any products to your cart yet.</p>
-            <Button variant="primary" onClick={continueShopping}>
-              Continue Shopping
+          <div className="gc-cart-empty">
+            <div className="gc-cart-empty__icon-wrap">
+              <FaShoppingCart className="gc-cart-empty__icon" aria-hidden />
+            </div>
+            <h2 className="gc-cart-empty__title">Your bag is empty</h2>
+            <p className="gc-cart-empty__text text-muted">
+              Explore the shop and add products curated by Glow Care.
+            </p>
+            <Button className="gc-btn-primary" onClick={continueShopping}>
+              Continue shopping <FaArrowRight className="ms-2" />
             </Button>
           </div>
         ) : (
-          <>
-            <div className="cart-table-container">
-              <Table responsive className="cart-table">
-                <thead>
-                  <tr>
-                    <th className="image-col">Image</th>
-                    <th className="product-col">Product</th>
-                    <th className="price-col">Price</th>
-                    <th className="quantity-col">Quantity</th>
-                    <th className="total-col">Total</th>
-                    <th className="remove-col">Remove</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {cartItems.map((item) => (
-                    <tr key={item.id}>
-                      <td className="image-col">
-                        <img
-                          src={item.image ? `http://localhost:5000${item.image}` : "/placeholder.svg"}
-                          alt={item.name}
-                          className="cart-item-image"
-                          onError={(e) => {
-                            e.target.src = "/placeholder.svg"
-                          }}
-                        />
-                      </td>
-                      <td className="product-col">
-                        <div>
-                          <strong>{item.name}</strong>
-                          <br />
-                          <small className="text-muted">
-                            {item.category} • {item.brand}
-                          </small>
-                        </div>
-                      </td>
-                      <td className="price-col">${item.price.toFixed(2)}</td>
-                      <td className="quantity-col">
-                        <div className="quantity-control">
-                          <Button
-                            variant="light"
-                            className="quantity-btn"
+          <Row className="g-4 align-items-start">
+            <Col lg={8}>
+              <ul className="gc-cart-list list-unstyled mb-0">
+                {cartItems.map((item) => (
+                  <li key={item.id} className="gc-cart-line">
+                    <Link to={`/product/${item.id}`} className="gc-cart-line__thumb-link">
+                      <img
+                        src={resolveMediaUrl(item.image)}
+                        alt=""
+                        className="gc-cart-line__thumb"
+                        onError={(e) => {
+                          e.currentTarget.src = "/placeholder.svg"
+                        }}
+                      />
+                    </Link>
+                    <div className="gc-cart-line__body">
+                      <Link to={`/product/${item.id}`} className="gc-cart-line__name">
+                        {item.name}
+                      </Link>
+                      <p className="gc-cart-line__meta text-muted small mb-2">
+                        {item.brand}
+                        {item.category ? ` · ${item.category}` : ""}
+                      </p>
+                      <div className="gc-cart-line__row">
+                        <div className="gc-cart-qty">
+                          <button
+                            type="button"
+                            className="gc-cart-qty__btn"
                             onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            aria-label="Decrease quantity"
                           >
-                            -
-                          </Button>
+                            −
+                          </button>
                           <Form.Control
                             type="number"
+                            min={1}
                             value={item.quantity}
-                            onChange={(e) => updateQuantity(item.id, Number.parseInt(e.target.value) || 1)}
-                            className="quantity-input"
-                            min="1"
+                            onChange={(e) => updateQuantity(item.id, Number.parseInt(e.target.value, 10) || 1)}
+                            className="gc-cart-qty__input"
                           />
-                          <Button
-                            variant="light"
-                            className="quantity-btn"
+                          <button
+                            type="button"
+                            className="gc-cart-qty__btn"
                             onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            aria-label="Increase quantity"
                           >
                             +
-                          </Button>
+                          </button>
                         </div>
-                      </td>
-                      <td className="total-col">${item.total.toFixed(2)}</td>
-                      <td className="remove-col">
-                        <Button variant="link" className="remove-btn" onClick={() => removeItem(item.id)}>
-                          <FaTrash />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
-            </div>
+                        <div className="gc-cart-line__price">
+                          <span className="gc-cart-line__unit text-muted small">
+                            {formatUSD(item.price)} each
+                          </span>
+                          <span className="gc-cart-line__line-total">{formatUSD(item.total)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="gc-cart-line__remove"
+                      onClick={() => removeItem(item.id)}
+                      aria-label={`Remove ${item.name}`}
+                    >
+                      <FaTrash />
+                    </button>
+                  </li>
+                ))}
+              </ul>
 
-            <Row className="cart-summary">
-              <Col md={6}>
-                <div className="cart-actions">
-                  <Button variant="secondary" className="update-cart-btn" onClick={updateCart}>
-                    Update Cart
-                  </Button>
-                  <Button variant="primary" className="continue-shopping-btn" onClick={continueShopping}>
-                    Continue Shopping
-                  </Button>
-                  <Button variant="danger" className="clear-cart-btn" onClick={clearCart}>
-                    Clear Cart
-                  </Button>
+              <div className="gc-cart-actions mt-3">
+                <Button variant="outline-secondary" className="me-2" onClick={syncNotice}>
+                  Save bag
+                </Button>
+                <Button variant="outline-danger" onClick={clearCart}>
+                  Clear bag
+                </Button>
+                <Button variant="link" className="text-decoration-none" onClick={continueShopping}>
+                  Continue shopping
+                </Button>
+              </div>
+            </Col>
+
+            <Col lg={4}>
+              <aside className="gc-cart-summary-card">
+                <h2 className="gc-cart-summary-card__title">Order summary</h2>
+                <div className="gc-cart-summary-rows">
+                  <div className="gc-cart-summary-row">
+                    <span>Subtotal</span>
+                    <span>{formatUSD(subtotal)}</span>
+                  </div>
+                  <div className="gc-cart-summary-row">
+                    <span>Shipping (US)</span>
+                    <span>
+                      {shipping === 0 && subtotal > 0 ? (
+                        <span className="text-success">Free</span>
+                      ) : subtotal === 0 ? (
+                        "—"
+                      ) : (
+                        formatUSD(shipping)
+                      )}
+                    </span>
+                  </div>
+                  {subtotal > 0 && subtotal <= FREE_SHIPPING_AT && (
+                    <p className="gc-cart-ship-hint small text-muted mb-0">
+                      Add {formatUSD(FREE_SHIPPING_AT - subtotal)} more for free shipping on orders over{" "}
+                      {formatUSD(FREE_SHIPPING_AT)}.
+                    </p>
+                  )}
+                  <div className="gc-cart-summary-row gc-cart-summary-row--total">
+                    <span>Estimated total</span>
+                    <span>{formatUSD(orderTotal)}</span>
+                  </div>
                 </div>
-              </Col>
-              <Col md={6}>
-                <div className="cart-totals">
-                  <h3>Cart Totals</h3>
-                  <div className="totals-row">
-                    <span>Subtotal:</span>
-                    <span>${subtotal.toFixed(2)}</span>
-                  </div>
-                  <div className="totals-row">
-                    <span>Shipping:</span>
-                    <span>Free</span>
-                  </div>
-                  <div className="totals-row grand-total">
-                    <span>Total:</span>
-                    <span>${subtotal.toFixed(2)}</span>
-                  </div>
-                  <Button variant="success" className="checkout-btn">
-                    Proceed to Checkout
-                  </Button>
-                </div>
-              </Col>
-            </Row>
-          </>
+                <Button className="gc-btn-primary w-100 mb-2" size="lg" disabled>
+                  Checkout (coming soon)
+                </Button>
+                <p className="small text-muted mb-0 text-center">
+                  Secure checkout will connect to your payment provider. Totals include flat US shipping under{" "}
+                  {formatUSD(FREE_SHIPPING_AT)}.
+                </p>
+              </aside>
+            </Col>
+          </Row>
         )}
       </Container>
     </main>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { Link } from "react-router-dom"
 import "./CSS/about.css"
 
 export default function About() {
@@ -28,9 +29,9 @@ export default function About() {
             Dermatologist tested.
           </p>
           <div className="about__cta fade-in delay-2">
-            <a href="/products" className="about__button animated-button">
+            <Link to="/shop" className="about__button animated-button">
               Shop Body Care
-            </a>
+            </Link>
             <button
               type="button"
               className="about__link animated-link"

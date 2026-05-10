@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import './axiosSetup';
 import './index.css';
+import './theme.css';
 import reportWebVitals from './reportWebVitals';
 import Project from './projectrouting';
 
