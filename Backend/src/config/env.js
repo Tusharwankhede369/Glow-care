@@ -21,7 +21,7 @@ const env = {
   JWT_SECRET: getEnv("JWT_SECRET", "dev_secret_key"),
   // MONGODB_URI_LOCAL is convenient for development when an Atlas connection
   // is unavailable; production only needs the normal MONGODB_URI setting.
-  MONGODB_URI: getEnv("MONGODB_URI_LOCAL", getEnv("MONGODB_URI", "mongodb://127.0.0.1:27017/Glowcare")),
+  MONGODB_URI: getEnv("MONGODB_URI_LOCAL", getEnv("MONGODB_URI", "mongodb://127.0.0.1:27017/glowcare")),
   CLIENT_ORIGINS: getEnv("CLIENT_ORIGINS", "http://localhost:3000,http://localhost:5173")
     .split(",")
     .map((s) => s.trim())
