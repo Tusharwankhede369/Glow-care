@@ -18,6 +18,7 @@ const Cart = ({ cart, setCart }) => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [notice, setNotice] = useState("")
+  const [checkingOut, setCheckingOut] = useState(false)
   const navigate = useNavigate()
 
   const shipping = subtotal > FREE_SHIPPING_AT ? 0 : subtotal > 0 ? SHIPPING_FLAT : 0
@@ -104,6 +105,30 @@ const Cart = ({ cart, setCart }) => {
 
   const continueShopping = () => {
     navigate("/shop")
+  }
+
+  const checkout = async () => {
+    const token = localStorage.getItem("token")
+    if (!token) {
+      navigate("/login", { state: { from: { pathname: "/cart" } } })
+      return
+    }
+
+    try {
+      setCheckingOut(true)
+      setError("")
+      const response = await axios.post(
+        `${BASE_URL}/checkout/cod`,
+        { items: cartItems.map((item) => ({ productId: item.id, quantity: item.quantity })) },
+        { headers: { Authorization: `Bearer ${token}` } },
+      )
+      clearCart()
+      setNotice(`Order ${response.data.orderId.slice(-6).toUpperCase()} has been placed. We'll contact you to confirm delivery.`)
+    } catch (err) {
+      setError(err.response?.data?.error || "We couldn't place your order. Please try again.")
+    } finally {
+      setCheckingOut(false)
+    }
   }
 
   if (loading) {
@@ -263,11 +288,11 @@ const Cart = ({ cart, setCart }) => {
                     <span>{formatUSD(orderTotal)}</span>
                   </div>
                 </div>
-                <Button className="gc-btn-primary w-100 mb-2" size="lg" disabled>
-                  Checkout (coming soon)
+                <Button className="gc-btn-primary w-100 mb-2" size="lg" onClick={checkout} disabled={checkingOut}>
+                  {checkingOut ? "Placing your order..." : "Place order — Cash on delivery"}
                 </Button>
                 <p className="small text-muted mb-0 text-center">
-                  Secure checkout will connect to your payment provider. Totals include flat US shipping under{" "}
+                  Secure cash-on-delivery checkout. Totals include flat US shipping under{" "}
                   {formatUSD(FREE_SHIPPING_AT)}.
                 </p>
               </aside>

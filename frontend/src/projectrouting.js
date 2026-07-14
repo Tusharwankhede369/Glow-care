@@ -60,13 +60,14 @@ function AppShell({ cart, setCart, user, setUser }) {
         <Route path="/admin/login" element={<AdminLoginpro />} />
         <Route path="/admin/register" element={<AdminRegister />} />
 
-        <Route path="/" element={<RequireAuth><Home cart={cart} setCart={setCart} /></RequireAuth>} />
-        <Route path="/shop" element={<RequireAuth><Shop cart={cart} setCart={setCart} /></RequireAuth>} />
-        <Route path="/product/:id" element={<RequireAuth><Product cart={cart} setCart={setCart} /></RequireAuth>} />
-        <Route path="/blog" element={<RequireAuth><h2>Blog Page</h2></RequireAuth>} />
-        <Route path="/about" element={<RequireAuth><About /></RequireAuth>} />
-        <Route path="/contact" element={<RequireAuth><Contact /></RequireAuth>} />
-        <Route path="/cart" element={<RequireAuth><Cart cart={cart} setCart={setCart} /></RequireAuth>} />
+        {/* Browsing the store must never require an account. Authentication is only
+            needed when a customer places an order or opens their private profile. */}
+        <Route path="/" element={<Home cart={cart} setCart={setCart} />} />
+        <Route path="/shop" element={<Shop cart={cart} setCart={setCart} />} />
+        <Route path="/product/:id" element={<Product cart={cart} setCart={setCart} />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/cart" element={<Cart cart={cart} setCart={setCart} />} />
         <Route path="/admin/dashboard" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
         <Route path="/profile" element={<RequireAuth><Profile cart={cart} /></RequireAuth>} />
 
