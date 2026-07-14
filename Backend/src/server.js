@@ -34,7 +34,13 @@ async function start() {
 }
 
 start().catch((err) => {
-  console.error("Server startup failed", err)
+  console.error("Server startup failed:", err.message || err)
+  if (err.writeErrors?.length) {
+    console.error(
+      "Database write details:",
+      err.writeErrors.map((item) => item.err?.errmsg || item.err?.message || item.err)
+    )
+  }
   process.exit(1)
 })
 
