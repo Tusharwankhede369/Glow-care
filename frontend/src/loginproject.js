@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Container, Form, Button, Alert } from "react-bootstrap"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 import axios from "axios"
 import "./CSS/login.css"
 import { BASE_URL } from "./config"
@@ -17,6 +17,7 @@ const Login = ({ setUser }) => {
   const [loading, setLoading] = useState(false)
 
   const navigate = useNavigate()
+  const location = useLocation()
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -31,7 +32,7 @@ const Login = ({ setUser }) => {
     try {
       const payload = {
         username: formData.username.trim().toLowerCase(),
-        password: formData.password.trim(),
+        password: formData.password,
       }
 
       const loginRes = await axios.post(
@@ -52,7 +53,7 @@ const Login = ({ setUser }) => {
       )
 
       setUser(profileRes.data)
-      navigate("/")
+      navigate(location.state?.from?.pathname || "/")
     } catch (err) {
       setError(
         err.response?.data?.error ||
@@ -70,7 +71,10 @@ const Login = ({ setUser }) => {
         className="d-flex justify-content-center align-items-center min-vh-100"
       >
         <div className="login-box">
-          <h3 className="mb-3">Login</h3>
+          <div className="login-heading text-center">
+            <h3>Welcome back</h3>
+            <p>Sign in to manage your orders and checkout securely.</p>
+          </div>
 
           {error && <Alert variant="danger">{error}</Alert>}
 
@@ -83,6 +87,7 @@ const Login = ({ setUser }) => {
                 value={formData.username}
                 onChange={handleChange}
                 required
+                className="login-input"
               />
             </Form.Group>
 
@@ -94,12 +99,13 @@ const Login = ({ setUser }) => {
                 value={formData.password}
                 onChange={handleChange}
                 required
+                className="login-input"
               />
             </Form.Group>
 
             <Button
               type="submit"
-              className="w-100"
+              className="w-100 btn-signin"
               disabled={loading}
             >
               {loading ? "Signing in..." : "Login"}

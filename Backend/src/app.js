@@ -1,6 +1,7 @@
 const express = require("express")
 const cors = require("cors")
 const path = require("path")
+const fs = require("fs")
 const { env } = require("./config/env")
 
 const authRoutes = require("./routes/auth.routes")
@@ -32,6 +33,16 @@ function createApp() {
   app.use(productsRoutes)
   app.use(ordersRoutes)
   app.use(adminRoutes)
+
+  // A production deployment can run the API and React single-page app from one
+  // service. The fallback is deliberately registered after API routes so direct
+  // visits such as /shop and /product/:id render instead of returning 404.
+  const frontendBuildPath = path.join(__dirname, "..", "..", "frontend", "build")
+  const indexPath = path.join(frontendBuildPath, "index.html")
+  if (fs.existsSync(indexPath)) {
+    app.use(express.static(frontendBuildPath))
+    app.get("*", (_, res) => res.sendFile(indexPath))
+  }
 
   return app
 }

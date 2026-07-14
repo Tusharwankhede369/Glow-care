@@ -36,7 +36,12 @@ const Register = () => {
     setLoading(true)
 
     try {
-      const res = await axios.post(`${BASE_URL}/signup`, formData, {
+      const payload = {
+        ...formData,
+        email: formData.email.trim().toLowerCase(),
+        username: formData.username.trim().toLowerCase(),
+      }
+      const res = await axios.post(`${BASE_URL}/signup`, payload, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -82,6 +87,7 @@ const Register = () => {
               value={formData.name}
               onChange={handleChange}
               required
+              className="custom-input"
             />
           </Form.Group>
 
@@ -92,6 +98,7 @@ const Register = () => {
               placeholder="Middle Name (Optional)"
               value={formData.middleName}
               onChange={handleChange}
+              className="custom-input"
             />
           </Form.Group>
 
@@ -103,6 +110,7 @@ const Register = () => {
               value={formData.username}
               onChange={handleChange}
               required
+              className="custom-input"
             />
           </Form.Group>
 
@@ -114,6 +122,7 @@ const Register = () => {
               value={formData.email}
               onChange={handleChange}
               required
+              className="custom-input"
             />
           </Form.Group>
 
@@ -125,12 +134,14 @@ const Register = () => {
               value={formData.password}
               onChange={handleChange}
               required
+              minLength={8}
+              className="custom-input"
             />
           </Form.Group>
 
           <Button
             type="submit"
-            className="w-100"
+            className="w-100 btn-custom"
             disabled={loading}
           >
             {loading ? "Creating..." : "Create"}
