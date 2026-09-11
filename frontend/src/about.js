@@ -98,6 +98,14 @@ export default function About() {
         </div>
       </section>
 
+      <section className="about__story" aria-labelledby="about-story-title">
+        <div>
+          <p className="about__eyebrow">Our story</p>
+          <h2 id="about-story-title" className="about__section-title">Care should feel considered, not complicated.</h2>
+        </div>
+        <p className="about__founder-text">Glow Care began with a simple belief: the routines we repeat every day deserve ingredients we can understand and packaging we can feel good about. We curate effective essentials with a warm, approachable point of view — no impossible promises, just thoughtful care for real life.</p>
+      </section>
+
       {/* Three pillars */}
       <section className="about__pillars" aria-label="Glow Care pillars">
         <div className="about__grid">
@@ -130,6 +138,12 @@ export default function About() {
         </div>
       </section>
 
+      <section className="about__stats" aria-label="Glow Care at a glance">
+        <div><strong>Thoughtfully curated</strong><span>Every product is selected for its everyday usefulness.</span></div>
+        <div><strong>Ingredient-led</strong><span>Clear labels and gentle, transparent choices.</span></div>
+        <div><strong>Kind by design</strong><span>We prioritize conscious packaging and partners.</span></div>
+      </section>
+
       {/* Founder note */}
       <section className="about__founder" aria-labelledby="founder-note-title">
         <div className="about__founder-inner fade-in delay-7">
@@ -140,6 +154,15 @@ export default function About() {
             We started Glow Care to make body care simpler and safer. No harsh additives, only what your skin
             needs—thoughtfully made, honestly priced.
           </p>
+        </div>
+      </section>
+
+      <section className="about__trust" aria-labelledby="about-trust-title">
+        <h2 id="about-trust-title" className="about__section-title">What makes us different</h2>
+        <div className="about__trust-grid">
+          <article><h3>Less guesswork</h3><p>Easy-to-understand edits for skin, hair, body, and gifting — so every choice earns a place in your routine.</p></article>
+          <article><h3>Warm guidance</h3><p>Questions are welcome. Our care team helps you choose with confidence before and after checkout.</p></article>
+          <article><h3>Made to return to</h3><p>We focus on calm, dependable rituals rather than chasing a new trend every week.</p></article>
         </div>
       </section>
 

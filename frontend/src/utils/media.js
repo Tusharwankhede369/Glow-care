@@ -12,3 +12,8 @@ export function resolveMediaUrl(path) {
   const normalized = p.startsWith("/") ? p : `/${p}`
   return `${BASE_URL}${normalized}`
 }
+
+export function getPrimaryMedia(item) {
+  if (!item) return ""
+  return item.primaryImage || item.image || item.images?.[0] || ""
+}

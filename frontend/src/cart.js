@@ -55,7 +55,7 @@ const Cart = ({ cart, setCart }) => {
           id: product._id,
           name: product.name,
           price: product.price,
-          image: product.image,
+          image: product.primaryImage || product.image || product.images?.[0],
           quantity,
           total: line,
           category: product.category,

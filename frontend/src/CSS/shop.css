@@ -8,6 +8,43 @@
   animation: fadeIn 0.5s ease-in;
 }
 
+.shop-mobile-toolbar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.shop-mobile-toolbar span {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.active-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+}
+
+.active-filter-chips button {
+  border: 1px solid #d6d3d1;
+  border-radius: 999px;
+  padding: 0.3rem 0.65rem;
+  background: #fafaf9;
+  color: #44403c;
+  font-size: 0.78rem;
+}
+
+.active-filter-chips button:hover {
+  background: #fef3c7;
+  border-color: #b45309;
+}
+
+.active-filter-chips .clear-filter-chip {
+  color: #991b1b;
+}
+
 @keyframes fadeIn {
   0% {
     opacity: 0;
@@ -387,9 +424,18 @@ img.product-image {
 
 /* Responsive Adjustments */
 @media (max-width: 991px) {
+  .shop-mobile-toolbar {
+    display: flex;
+  }
+
   .sidebar {
+    display: none;
     padding: 16px;
     margin-bottom: 24px;
+  }
+
+  .sidebar.is-open {
+    display: block;
   }
 
   .filter-section {

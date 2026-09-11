@@ -19,9 +19,11 @@ const env = {
   NODE_ENV: getEnv("NODE_ENV", "development"),
   PORT: getEnvNumber("PORT", 5000),
   JWT_SECRET: getEnv("JWT_SECRET", "dev_secret_key"),
+  ADMIN_SETUP_KEY: getEnv("ADMIN_SETUP_KEY", ""),
+  GOOGLE_CLIENT_ID: getEnv("GOOGLE_CLIENT_ID", ""),
   // MONGODB_URI_LOCAL is convenient for development when an Atlas connection
   // is unavailable; production only needs the normal MONGODB_URI setting.
-  MONGODB_URI: getEnv("MONGODB_URI_LOCAL", getEnv("MONGODB_URI", "mongodb://127.0.0.1:27017/glowcare")),
+  MONGODB_URI: getEnv("MONGODB_URI_LOCAL", getEnv("MONGODB_URI", "mongodb://127.0.0.1:27017/Glowcare")),
   CLIENT_ORIGINS: getEnv("CLIENT_ORIGINS", "http://localhost:3000,http://localhost:5173")
     .split(",")
     .map((s) => s.trim())

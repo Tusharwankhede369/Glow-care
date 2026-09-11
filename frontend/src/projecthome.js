@@ -37,22 +37,31 @@ const Home = ({ cart = {}, setCart = () => {} }) => {
   const [showToast, setShowToast] = useState(false)
   const [toastMessage, setToastMessage] = useState("")
   const [currentBanner, setCurrentBanner] = useState(0)
+  const [homeContent, setHomeContent] = useState([])
+  const [isBannerPaused, setIsBannerPaused] = useState(false)
 
   // Banner images array - Using imported images
-  const bannerImages = [banner1, banner2, banner3]
+  const fallbackBanners = [
+    { image: banner1, title: "Glow Care spotlight" }, { image: banner2, title: "Glow Care spotlight" }, { image: banner3, title: "Glow Care spotlight" },
+  ]
+  const banners = homeContent.filter((item) => item.kind === "banner")
+  const categoryTiles = homeContent.filter((item) => item.kind === "category")
+  const bannerImages = banners.length ? banners : fallbackBanners
 
   // Auto-rotate banner images
   useEffect(() => {
+    if (isBannerPaused || bannerImages.length < 2) return undefined
     const interval = setInterval(() => {
       setCurrentBanner((prev) => (prev === bannerImages.length - 1 ? 0 : prev + 1))
     }, 5000) // Change every 5 seconds
 
     return () => clearInterval(interval)
-  }, [bannerImages.length])
+  }, [bannerImages.length, isBannerPaused])
 
   // Fetch products from backend
   useEffect(() => {
     fetchProducts()
+    axios.get(`${BASE_URL}/home-content`).then((response) => setHomeContent(response.data)).catch(() => {})
   }, [])
 
   const fetchProducts = async () => {
@@ -151,7 +160,7 @@ const Home = ({ cart = {}, setCart = () => {} }) => {
         <div className="product-image-container">
           <Card.Img
             variant="top"
-            src={resolveMediaUrl(product.image)}
+            src={resolveMediaUrl(product.primaryImage || product.image || product.images?.[0])}
             alt={product.name}
             className="product-image"
             onError={(e) => {
@@ -299,38 +308,12 @@ const Home = ({ cart = {}, setCart = () => {} }) => {
             </p>
           </div>
           <Row className="g-3 g-lg-4">
-            <Col lg={3} md={6} sm={6}>
-              <CategoryCard
-                image={premiumGiftSet4}
-                title="Grooming range"
-                subtitle="Hair & body care"
-                link="/shop?category=Haircare"
-              />
-            </Col>
-            <Col lg={3} md={6} sm={6}>
-              <CategoryCard
-                image={premiumGiftSet1}
-                title="Perfume range"
-                subtitle="Scents & layering"
-                link="/shop?category=Perfume"
-              />
-            </Col>
-            <Col lg={3} md={6} sm={6}>
-              <CategoryCard
-                image={premiumGiftSet2}
-                title="Premium gift set"
-                subtitle="Ready to gift"
-                link="/shop?search=gift"
-              />
-            </Col>
-            <Col lg={3} md={6} sm={6}>
-              <CategoryCard
-                image={premiumGiftSet3}
-                title="Personalised gift box"
-                subtitle="Make it theirs"
-                link="/shop?search=personalised"
-              />
-            </Col>
+            {(categoryTiles.length ? categoryTiles : [
+              { image: premiumGiftSet4, title: "Grooming range", caption: "Hair & body care", link: "/shop?category=Haircare" },
+              { image: premiumGiftSet1, title: "Perfume range", caption: "Scents & layering", link: "/shop?category=Perfume" },
+              { image: premiumGiftSet2, title: "Premium gift set", caption: "Ready to gift", link: "/shop?search=gift" },
+              { image: premiumGiftSet3, title: "Personalised gift box", caption: "Make it theirs", link: "/shop?search=personalised" },
+            ]).map((tile) => <Col lg={3} md={6} sm={6} key={tile._id || tile.title}><CategoryCard image={resolveMediaUrl(tile.image)} title={tile.title} subtitle={tile.caption} link={tile.link || `/shop?category=${encodeURIComponent(tile.key || "")}`} /></Col>)}
           </Row>
         </Container>
       </section>
@@ -346,7 +329,7 @@ const Home = ({ cart = {}, setCart = () => {} }) => {
               style={{ width: 160, height: 160 }}
             />
           </div>
-          <div className="hero-banner">
+          <div className="hero-banner" onMouseEnter={() => setIsBannerPaused(true)} onMouseLeave={() => setIsBannerPaused(false)}>
             <button
               className="hero-nav-btn hero-nav-left"
               onClick={() => setCurrentBanner(currentBanner === 0 ? bannerImages.length - 1 : currentBanner - 1)}
@@ -364,8 +347,8 @@ const Home = ({ cart = {}, setCart = () => {} }) => {
             <div className="hero-image-full">
               <img
                 key={currentBanner}
-                src={bannerImages[currentBanner] || "/placeholder.svg"}
-                alt={`Glow Care spotlight ${currentBanner + 1}`}
+                src={resolveMediaUrl(bannerImages[currentBanner]?.image)}
+                alt={bannerImages[currentBanner]?.title || `Glow Care spotlight ${currentBanner + 1}`}
                 className="hero-banner-image-full"
                 onError={(e) => {
                   e.currentTarget.src = "/placeholder.svg"

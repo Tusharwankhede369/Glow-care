@@ -3,6 +3,8 @@ import { Container, Row, Col, Card, Form, Button, Alert } from "react-bootstrap"
 import { HiLocationMarker, HiPhone, HiMail, HiClock } from "react-icons/hi"
 import { DotLottieReact } from "@lottiefiles/dotlottie-react"
 import { Link } from "react-router-dom"
+import axios from "axios"
+import { BASE_URL } from "./config"
 import "./CSS/contact.css"
 
 const CONTACT_LOTTIE =
@@ -11,17 +13,28 @@ const CONTACT_LOTTIE =
 const Contact = () => {
   const [sent, setSent] = useState(false)
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" })
+  const [errors, setErrors] = useState({})
+  const [sending, setSending] = useState(false)
+  const [submitError, setSubmitError] = useState("")
 
   const onChange = (e) => {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }))
   }
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault()
-    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) return
-    setSent(true)
-    setForm({ name: "", email: "", subject: "", message: "" })
-    setTimeout(() => setSent(false), 6000)
+    const nextErrors = {}
+    if (!form.name.trim()) nextErrors.name = "Please enter your name."
+    if (!/^\S+@\S+\.\S+$/.test(form.email)) nextErrors.email = "Enter a valid email address."
+    if (!form.message.trim()) nextErrors.message = "Please enter a message."
+    setErrors(nextErrors)
+    if (Object.keys(nextErrors).length) return
+    try {
+      setSending(true); setSubmitError("")
+      await axios.post(`${BASE_URL}/contact`, form)
+      setSent(true); setForm({ name: "", email: "", subject: "", message: "" })
+    } catch (err) { setSubmitError(err.response?.data?.error || "We couldn't send your message. Please try again.") }
+    finally { setSending(false) }
   }
 
   return (
@@ -129,14 +142,14 @@ const Contact = () => {
               <Card.Body className="p-4 p-md-5">
                 <h2 className="h4 mb-2">Send a message</h2>
                 <p className="text-muted small mb-4">
-                  For wholesale or press, mention it in the subject line. This form is a demo front-end; wire it to your
-                  API when ready.
+                  For wholesale or press, mention it in the subject line. Our care team will receive your message.
                 </p>
                 {sent && (
                   <Alert variant="success" className="mb-4">
                     Thanks — your message has been recorded. We’ll follow up by email.
                   </Alert>
                 )}
+                {submitError && <Alert variant="danger" className="mb-4">{submitError}</Alert>}
                 <Form onSubmit={onSubmit}>
                   <Row className="g-3 mb-3">
                     <Col md={6}>
@@ -150,7 +163,9 @@ const Contact = () => {
                           className="gc-contact-input"
                           placeholder="Your name"
                           autoComplete="name"
+                          isInvalid={Boolean(errors.name)}
                         />
+                        <Form.Control.Feedback type="invalid">{errors.name}</Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                     <Col md={6}>
@@ -165,7 +180,9 @@ const Contact = () => {
                           className="gc-contact-input"
                           placeholder="you@example.com"
                           autoComplete="email"
+                          isInvalid={Boolean(errors.email)}
                         />
+                        <Form.Control.Feedback type="invalid">{errors.email}</Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                   </Row>
@@ -189,11 +206,13 @@ const Contact = () => {
                       onChange={onChange}
                       required
                       className="gc-contact-input"
-                      placeholder="How can we help?"
-                    />
+                          placeholder="How can we help?"
+                          isInvalid={Boolean(errors.message)}
+                        />
+                        <Form.Control.Feedback type="invalid">{errors.message}</Form.Control.Feedback>
                   </Form.Group>
-                  <Button type="submit" className="gc-contact-submit px-4">
-                    Send message
+                  <Button type="submit" className="gc-contact-submit px-4" disabled={sending}>
+                    {sending ? "Sending…" : "Send message"}
                   </Button>
                 </Form>
               </Card.Body>

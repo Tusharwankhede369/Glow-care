@@ -107,6 +107,7 @@
 .gc-contact-submit:hover {
   background: var(--gc-primary-hover, #152a26) !important;
 }
+.gc-contact-submit:disabled { opacity: .7; cursor: wait; }
 
 .gc-contact-aside {
   background: var(--gc-elevated, #f3f0ea);

@@ -21,6 +21,8 @@ import { BASE_URL } from "./config"
 import ForgotPassword from "./auth/ForgotPassword"
 import ResetPassword from "./auth/ResetPassword"
 import VerifyEmail from "./auth/VerifyEmail"
+import VerifyEmailOtp from "./auth/VerifyEmailOtp"
+import AdminContentManager from "./AdminContentManager"
 
 // Authentication wrapper to protect routes
 function RequireAuth({ children }) {
@@ -57,6 +59,7 @@ function AppShell({ cart, setCart, user, setUser }) {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/verify-email-otp" element={<VerifyEmailOtp />} />
         <Route path="/admin/login" element={<AdminLoginpro />} />
         <Route path="/admin/register" element={<AdminRegister />} />
 
@@ -69,6 +72,7 @@ function AppShell({ cart, setCart, user, setUser }) {
         <Route path="/contact" element={<Contact />} />
         <Route path="/cart" element={<Cart cart={cart} setCart={setCart} />} />
         <Route path="/admin/dashboard" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
+        <Route path="/admin/content" element={<RequireAdmin><AdminContentManager /></RequireAdmin>} />
         <Route path="/profile" element={<RequireAuth><Profile cart={cart} /></RequireAuth>} />
 
         <Route path="*" element={<Navigate to="/" replace />} />

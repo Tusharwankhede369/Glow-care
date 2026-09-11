@@ -1,425 +1,134 @@
-"use client"
-
-import { useState, useEffect } from "react"
-import { Container, Row, Col, Form, Modal, Button, Spinner, Alert } from "react-bootstrap"
-import "./CSS/product.css"
-import { FaShoppingCart } from "react-icons/fa"
-import { useNavigate, useParams } from "react-router-dom"
+import { useEffect, useState } from "react"
+import { Alert, Button, Col, Container, Modal, Row, Spinner } from "react-bootstrap"
+import { FaArrowLeft, FaHeart, FaLeaf, FaMinus, FaPlus, FaShieldAlt, FaShoppingBag, FaStar, FaTruck } from "react-icons/fa"
+import { Link, useNavigate, useParams } from "react-router-dom"
 import axios from "axios"
-import { BASE_URL } from "./config"
 import { DotLottieReact } from "@lottiefiles/dotlottie-react"
-import { resolveMediaUrl } from "./utils/media"
+import "./CSS/product.css"
+import { BASE_URL } from "./config"
 import { formatUSD } from "./utils/format"
+import { resolveMediaUrl } from "./utils/media"
 
-const TRUST_LOTTIE = "https://lottie.host/1035f7ef-a131-4a7c-b320-636ec9e1e316/PvWGJQmbFV.lottie"
+const CART_LOTTIE = "https://lottie.host/905b1c83-dcab-409c-beff-251d04ce4685/ARmngN7JEZ.lottie"
+const CARE_LOTTIE = "https://lottie.host/514afd75-f57b-4a77-836b-1f9a330d9873/8OIKIkXcWj.lottie"
 
-const Product = ({ cart, setCart }) => {
-  const navigate = useNavigate()
+function ProductCard({ item, onAdd }) {
+  return <article className="pd-recommendation-card">
+    <Link to={`/product/${item._id}`} className="pd-recommendation-image">
+      <img src={resolveMediaUrl(item.image)} alt={item.name} onError={(event) => { event.currentTarget.src = "/placeholder.svg" }} />
+    </Link>
+    <div className="pd-recommendation-body">
+      <span>{item.brand || item.category}</span>
+      <Link to={`/product/${item._id}`}>{item.name}</Link>
+      <strong>{formatUSD(item.price)}</strong>
+      <button type="button" onClick={() => onAdd(item)}>Quick add</button>
+    </div>
+  </article>
+}
+
+export default function Product({ cart, setCart }) {
   const { id } = useParams()
-  const [quantity, setQuantity] = useState(1)
-  const [mainImage, setMainImage] = useState("")
+  const navigate = useNavigate()
   const [product, setProduct] = useState(null)
+  const [recommendations, setRecommendations] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
-  const [relatedProducts, setRelatedProducts] = useState([])
-  const [relatedLoading, setRelatedLoading] = useState(false)
-  const [youMayAlsoLike, setYouMayAlsoLike] = useState([])
-  const [youMayAlsoLikeLoading, setYouMayAlsoLikeLoading] = useState(false)
-
-  // Cart confirmation modal state
+  const [quantity, setQuantity] = useState(1)
+  const [wishlisted, setWishlisted] = useState(false)
   const [showCartModal, setShowCartModal] = useState(false)
   const [addedProduct, setAddedProduct] = useState(null)
-
-  // Auth check for UI
-  const isAuthed = Boolean(typeof window !== "undefined" && localStorage.getItem("token"))
+  const inStock = product && product.availability !== "Out of Stock" && product.stock !== 0
 
   useEffect(() => {
-    const fetchProduct = async () => {
+    let active = true
+    async function loadProduct() {
+      setLoading(true)
+      setError("")
       try {
-        setLoading(true)
-        const response = await axios.get(`${BASE_URL}/products/${id}`)
-        setProduct(response.data)
-        setMainImage(resolveMediaUrl(response.data.image))
-        setError("")
-        if (response.data.category) {
-          fetchRelatedProducts(response.data.category, response.data._id)
-        }
-        fetchYouMayAlsoLike(response.data._id)
+        const { data } = await axios.get(`${BASE_URL}/products/${id}`)
+        if (!active) return
+        setProduct(data)
+        setQuantity(1)
+        const related = await axios.get(`${BASE_URL}/products?${data.category ? `category=${encodeURIComponent(data.category)}&` : ""}limit=5`)
+        if (active) setRecommendations((related.data.products || []).filter((item) => item._id !== data._id).slice(0, 4))
       } catch {
-        setError("Failed to load product. Please try again.")
+        if (active) setError("We couldn't load this product. Please try again.")
       } finally {
-        setLoading(false)
+        if (active) setLoading(false)
       }
     }
-
-    if (id) fetchProduct()
+    loadProduct()
+    return () => { active = false }
   }, [id])
 
-  const fetchRelatedProducts = async (category, currentProductId) => {
-    try {
-      setRelatedLoading(true)
-      const response = await axios.get(
-        `${BASE_URL}/products?category=${encodeURIComponent(category)}&limit=4`
-      )
-      const filtered = response.data.products.filter((p) => p._id !== currentProductId)
-      setRelatedProducts(filtered)
-    } catch {
-      setRelatedProducts([])
-    } finally {
-      setRelatedLoading(false)
-    }
-  }
-
-  const fetchYouMayAlsoLike = async (currentProductId) => {
-    try {
-      setYouMayAlsoLikeLoading(true)
-      const response = await axios.get(`${BASE_URL}/products?limit=4`)
-      const filtered = response.data.products.filter((p) => p._id !== currentProductId)
-      const shuffled = filtered.sort(() => Math.random() - 0.5).slice(0, 4)
-      setYouMayAlsoLike(shuffled)
-    } catch {
-      setYouMayAlsoLike([])
-    } finally {
-      setYouMayAlsoLikeLoading(false)
-    }
-  }
-
-  const decreaseQuantity = () => {
-    if (quantity > 1) setQuantity(quantity - 1)
-  }
-
-  const increaseQuantity = () => {
-    setQuantity(quantity + 1)
-  }
-
-  const handleQuantityChange = (e) => {
-    setQuantity(Number.parseInt(e.target.value))
-  }
-
-  const addToCart = () => {
-    const token = localStorage.getItem("token")
-    if (!token) {
-      navigate("/login", { replace: true, state: { from: { pathname: `/product/${id}` } } })
-      return
-    }
-    setCart((prevCart) => {
-      const newCart = { ...prevCart }
-      newCart[product._id] = (newCart[product._id] || 0) + quantity
-      return newCart
-    })
-    setAddedProduct({
-      name: product.name,
-      quantity: quantity,
-      price: product.price,
-    })
-    setShowCartModal(true)
+  const addItem = (item, amount = 1, openModal = true) => {
+    setCart((current) => ({ ...current, [item._id]: (current[item._id] || 0) + amount }))
+    setAddedProduct({ ...item, quantity: amount })
+    if (openModal) setShowCartModal(true)
   }
 
   const buyNow = () => {
-    const token = localStorage.getItem("token")
-    if (!token) {
-      navigate("/login", { replace: true, state: { from: { pathname: `/product/${id}` } } })
-      return
-    }
-    setCart((prevCart) => {
-      const newCart = { ...prevCart }
-      newCart[product._id] = (newCart[product._id] || 0) + quantity
-      return newCart
-    })
+    addItem(product, quantity, false)
     navigate("/cart")
   }
 
-  const addRelatedToCart = (relatedProduct) => {
-    const token = localStorage.getItem("token")
-    if (!token) {
-      navigate("/login", { replace: true, state: { from: { pathname: `/product/${id}` } } })
-      return
-    }
-    setCart((prevCart) => {
-      const newCart = { ...prevCart }
-      newCart[relatedProduct._id] = (newCart[relatedProduct._id] || 0) + 1
-      return newCart
-    })
-    setAddedProduct({
-      name: relatedProduct.name,
-      quantity: 1,
-      price: relatedProduct.price,
-    })
-    setShowCartModal(true)
-  }
+  if (loading) return <main className="product-page"><Container className="pd-state"><Spinner animation="border" /><p>Preparing your product details…</p></Container></main>
+  if (error || !product) return <main className="product-page"><Container className="pd-state"><Alert variant="danger">{error || "Product not found."}</Alert><Button onClick={() => navigate("/shop")}>Back to shop</Button></Container></main>
 
-  const viewCart = () => {
-    setShowCartModal(false)
-    navigate("/cart")
-  }
+  const savings = product.originalPrice && product.originalPrice > product.price ? product.originalPrice - product.price : 0
+  const details = [["Category", product.category], ["Brand", product.brand], ["For", product.gender], ["Size", product.size], ["Skin type", product.skinType], ["Hair type", product.hairType]].filter(([, value]) => value)
 
-  const continueShopping = () => {
-    setShowCartModal(false)
-  }
-
-  if (loading) {
-    return (
-      <main className="product-page">
-        <Container>
-          <div className="text-center py-5">
-            <Spinner animation="border" variant="primary" />
-            <p className="mt-3">Loading product...</p>
-          </div>
-        </Container>
-      </main>
-    )
-  }
-
-  if (error || !product) {
-    return (
-      <main className="product-page">
-        <Container>
-          <div className="text-center py-5">
-            <Alert variant="danger">{error || "Product not found"}</Alert>
-            <Button variant="primary" onClick={() => navigate("/shop")}>
-              Back to Shop
-            </Button>
-          </div>
-        </Container>
-      </main>
-    )
-  }
-
-  return (
-    <main className="product-page">
-      <Container>
-        <Row className="align-items-start g-4">
-          <Col md={6} className="product-images-container">
-            <figure className="main-image-container">
-              <img
-                src={mainImage || "/placeholder.svg"}
-                alt={product.name}
-                className="main-product-image"
-                onError={(e) => {
-                  e.currentTarget.src = "/placeholder.svg"
-                }}
-              />
-            </figure>
+  return <main className="product-page">
+    <Container>
+      <Link to="/shop" className="pd-back"><FaArrowLeft /> Continue shopping</Link>
+      <section className="pd-hero">
+        <Row className="g-0 align-items-stretch">
+          <Col lg={6} className="pd-gallery-col">
+            <div className="pd-gallery">
+              {product.discount > 0 && <span className="pd-sale">Save {product.discount}%</span>}
+              <img className="pd-main-image" src={resolveMediaUrl(product.primaryImage || product.image || product.images?.[0])} alt={product.name} onError={(event) => { event.currentTarget.src = "/placeholder.svg" }} />
+            </div>
           </Col>
-
-          <Col md={6} className="product-details-container">
-            <Form className="product-details-form">
-              <h2 className="product-title">{product.name}</h2>
-              <div className="product-badges mb-2">
-                {product.isNatural && <span className="badge bg-success me-2">Natural</span>}
-                {product.isVegan && <span className="badge bg-info me-2">Vegan</span>}
-                {product.isCrueltyFree && <span className="badge bg-warning text-dark me-2">Cruelty Free</span>}
+          <Col lg={6} className="pd-info-col">
+            <div className="pd-info">
+              <div className="pd-kicker"><span>{product.brand || "GlowCare"}</span><button type="button" className={wishlisted ? "is-active" : ""} onClick={() => setWishlisted(!wishlisted)} aria-label="Save product"><FaHeart /></button></div>
+              <h1>{product.name}</h1>
+              <div className="pd-rating"><FaStar /> <strong>{Number(product.rating || 0).toFixed(1)}</strong><span>({product.numReviews || 0} reviews)</span></div>
+              <div className="pd-price-row"><strong>{formatUSD(product.price)}</strong>{product.originalPrice && <del>{formatUSD(product.originalPrice)}</del>}{savings > 0 && <span>Save {formatUSD(savings)}</span>}</div>
+              <p className="pd-summary">{product.description || "A thoughtfully selected GlowCare essential, made for your everyday routine."}</p>
+              <div className="pd-tags">
+                {product.isNatural && <span><FaLeaf /> Natural</span>}
+                {product.isVegan && <span><FaLeaf /> Vegan</span>}
+                {product.isCrueltyFree && <span><FaShieldAlt /> Cruelty-free</span>}
               </div>
-              <p className="product-price">
-                <span className="current-price">{formatUSD(product.price)}</span>
-                {product.originalPrice && (
-                  <span className="original-price ms-2">{formatUSD(product.originalPrice)}</span>
-                )}
-              </p>
-              <p className="product-availability">{product.availability}</p>
-              <section className="quantity-selection">
-                <span className="option-label">Quantity:</span>
-                <section className="quantity-selector">
-                  <button type="button" className="quantity-btn" onClick={decreaseQuantity}>
-                    -
-                  </button>
-                  <input type="text" className="quantity-input" value={quantity} onChange={handleQuantityChange} readOnly />
-                  <button type="button" className="quantity-btn" onClick={increaseQuantity}>
-                    +
-                  </button>
-                </section>
-              </section>
-            </Form>
-
-            <section className="product-actions">
-              <button
-                type="button"
-                className="add-to-cart-btn"
-                onClick={addToCart}
-                disabled={!isAuthed}
-                title={isAuthed ? "Add to cart" : "Login to add to cart"}
-              >
-                Add to cart
-              </button>
-              <button
-                type="button"
-                className="buy-now-btn"
-                onClick={buyNow}
-                disabled={!isAuthed}
-                title={isAuthed ? "Buy now" : "Login to continue"}
-              >
-                Buy it now
-              </button>
-              {!isAuthed && <p className="text-muted mt-2" style={{ fontSize: 12 }}>Please log in to add items to your cart.</p>}
-            </section>
+              <div className="pd-stock"><i className={inStock ? "available" : "unavailable"} /> {inStock ? `${product.stock || "Limited"} in stock — ready to ship` : "Currently unavailable"}</div>
+              <div className="pd-purchase-row">
+                <div className="pd-quantity" aria-label="Quantity selector"><button type="button" onClick={() => setQuantity((value) => Math.max(1, value - 1))}><FaMinus /></button><output>{quantity}</output><button type="button" onClick={() => setQuantity((value) => Math.min(product.stock || 99, value + 1))}><FaPlus /></button></div>
+                <button type="button" className="pd-add-button" onClick={() => addItem(product, quantity)} disabled={!inStock}><FaShoppingBag /> Add to bag</button>
+              </div>
+              <button type="button" className="pd-buy-button" onClick={buyNow} disabled={!inStock}>Buy now · {formatUSD(product.price * quantity)}</button>
+            </div>
           </Col>
         </Row>
+      </section>
 
-        {product.description && (
-          <section className="product-description-block gc-product-detail-section">
-            <h2 className="gc-section-heading">Product details</h2>
-            <p className="product-description-text">{product.description}</p>
-          </section>
-        )}
+      <section className="pd-benefits">
+        <div className="pd-benefit-animation"><DotLottieReact src={CARE_LOTTIE} loop autoplay /></div>
+        <div><FaTruck /><h2>Fast, careful delivery</h2><p>Free shipping on qualifying orders over $999.</p></div>
+        <div><FaShieldAlt /><h2>Shop with confidence</h2><p>Secure checkout and clear product information.</p></div>
+        <div><FaLeaf /><h2>Conscious choices</h2><p>Formula claims are highlighted for easy comparison.</p></div>
+      </section>
 
-        <section className="gc-trust-strip" aria-label="Shopping benefits">
-          <div className="gc-trust-strip__lottie" aria-hidden="true">
-            <DotLottieReact src={TRUST_LOTTIE} loop autoplay style={{ width: 120, height: 120 }} />
-          </div>
-          <div className="gc-trust-strip__grid">
-            <div>
-              <h3 className="gc-trust-strip__title">US shipping</h3>
-              <p className="gc-trust-strip__text">Flat-rate delivery; free over $999 on qualifying orders.</p>
-            </div>
-            <div>
-              <h3 className="gc-trust-strip__title">Clean formulas</h3>
-              <p className="gc-trust-strip__text">Cruelty-free options clearly labeled on every product page.</p>
-            </div>
-            <div>
-              <h3 className="gc-trust-strip__title">Care team</h3>
-              <p className="gc-trust-strip__text">Reach us Mon–Sat for order help and product questions.</p>
-            </div>
-          </div>
-        </section>
+      <Row className="g-4 pd-details-row">
+        <Col lg={7}><section className="pd-panel"><p className="pd-overline">About this product</p><h2>Made to fit your routine</h2><p className="pd-description">{product.description || "Explore this GlowCare favourite and add it to your personalised routine."}</p></section></Col>
+        <Col lg={5}><section className="pd-panel"><p className="pd-overline">Product specifications</p><dl className="pd-specs">{details.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl></section></Col>
+      </Row>
 
-        <section className="related-products">
-          <h2 className="section-title">Related Products</h2>
-          <p className="section-subtitle">You can check the related product for your shopping collection.</p>
+      {recommendations.length > 0 && <section className="pd-recommendations"><div><p className="pd-overline">Complete your routine</p><h2>You may also like</h2></div><div className="pd-recommendation-grid">{recommendations.map((item) => <ProductCard key={item._id} item={item} onAdd={(related) => addItem(related)} />)}</div></section>}
 
-          {relatedLoading ? (
-            <div className="text-center py-4">
-              <Spinner animation="border" variant="primary" size="sm" />
-              <p className="mt-2">Loading related products...</p>
-            </div>
-          ) : relatedProducts.length > 0 ? (
-            <Row>
-              {relatedProducts.map((product) => (
-                <Col md={3} sm={6} key={product._id} className="related-product-col">
-                  <article className="product-card">
-                    {product.discount > 0 && <span className="product-badge sale">SALE</span>}
-                    <figure className="product-image">
-                      <img
-                        src={resolveMediaUrl(product.image)}
-                        alt={product.name}
-                        className="product-thumbnail"
-                        onError={(e) => {
-                          e.currentTarget.src = "/placeholder.svg"
-                        }}
-                      />
-                    </figure>
-                    <section className="product-card-body">
-                      <h3 className="product-card-title">{product.name}</h3>
-                      <p className="product-card-price">
-                        {formatUSD(product.price)}
-                        {product.originalPrice && (
-                          <span className="original-price"> {formatUSD(product.originalPrice)}</span>
-                        )}
-                      </p>
-                      <button
-                        className="quick-add-btn"
-                        onClick={() => addRelatedToCart(product)}
-                        disabled={!isAuthed}
-                        title={isAuthed ? "Add to cart" : "Login to add to cart"}
-                      >
-                        Add to Cart
-                      </button>
-                    </section>
-                  </article>
-                </Col>
-              ))}
-            </Row>
-          ) : (
-            <div className="text-center py-4">
-              <p className="text-muted">No related products found.</p>
-            </div>
-          )}
-        </section>
-
-        <h2 className="section-title">You May Also Like</h2>
-        <p className="section-subtitle">Most of the customers choose our products. You may also like our product.</p>
-
-        {youMayAlsoLikeLoading ? (
-          <div className="text-center py-4">
-            <Spinner animation="border" variant="primary" size="sm" />
-            <p className="mt-2">Loading products...</p>
-          </div>
-        ) : youMayAlsoLike.length > 0 ? (
-          <Row>
-            {youMayAlsoLike.map((product) => (
-              <Col md={3} sm={6} key={`like-${product._id}`} className="related-product-col">
-                <article className="product-card">
-                  {product.discount > 0 && <span className="product-badge sale">SALE</span>}
-                  <figure className="product-image">
-                    <img
-                      src={resolveMediaUrl(product.image)}
-                      alt={product.name}
-                      className="product-thumbnail"
-                      onError={(e) => {
-                        e.currentTarget.src = "/placeholder.svg"
-                      }}
-                    />
-                  </figure>
-                  <section className="product-card-body">
-                    <h3 className="product-card-title">{product.name}</h3>
-                    <p className="product-card-price">
-                      {formatUSD(product.price)}
-                      {product.originalPrice && (
-                        <span className="original-price"> {formatUSD(product.originalPrice)}</span>
-                      )}
-                    </p>
-                    <button
-                      className="quick-add-btn"
-                      onClick={() => addRelatedToCart(product)}
-                      disabled={!isAuthed}
-                      title={isAuthed ? "Add to cart" : "Login to add to cart"}
-                    >
-                      Add to Cart
-                    </button>
-                  </section>
-                </article>
-              </Col>
-            ))}
-          </Row>
-        ) : (
-          <div className="text-center py-4">
-            <p className="text-muted">No products available at the moment.</p>
-          </div>
-        )}
-
-        <Modal show={showCartModal} onHide={continueShopping} centered className="cart-confirmation-modal">
-          <Modal.Header closeButton>
-            <Modal.Title>Added to Cart</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            {addedProduct && (
-              <div className="added-product-info">
-                <div className="added-product-icon">
-                  <FaShoppingCart size={30} />
-                </div>
-                <div className="added-product-details">
-                  <h5>{addedProduct.name}</h5>
-                  <p>
-                    {addedProduct.quantity} {addedProduct.quantity > 1 ? "items" : "item"} added to your cart
-                  </p>
-                  <p className="added-product-price">
-                    Total: {formatUSD(addedProduct.price * addedProduct.quantity)}
-                  </p>
-                </div>
-              </div>
-            )}
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={continueShopping}>
-              Continue Shopping
-            </Button>
-            <Button variant="primary" onClick={viewCart}>
-              View Cart
-            </Button>
-          </Modal.Footer>
-        </Modal>
-      </Container>
-    </main>
-  )
+      <Modal show={showCartModal} onHide={() => setShowCartModal(false)} centered contentClassName="pd-cart-modal">
+        <Modal.Body>{addedProduct && <div className="pd-cart-success"><DotLottieReact src={CART_LOTTIE} loop autoplay /><div><p className="pd-overline">Added to your bag</p><h2>{addedProduct.name}</h2><p>{addedProduct.quantity} {addedProduct.quantity === 1 ? "item" : "items"} · {formatUSD(addedProduct.price * addedProduct.quantity)}</p></div></div>}<div className="pd-modal-actions"><Button variant="outline-secondary" onClick={() => setShowCartModal(false)}>Keep shopping</Button><Button onClick={() => navigate("/cart")}>View bag</Button></div></Modal.Body>
+      </Modal>
+    </Container>
+  </main>
 }
-
-export default Product

@@ -8,6 +8,8 @@ const authRoutes = require("./routes/auth.routes")
 const productsRoutes = require("./routes/products.routes")
 const ordersRoutes = require("./routes/orders.routes")
 const adminRoutes = require("./routes/admin.routes")
+const homeContentRoutes = require("./routes/home-content.routes")
+const contactRoutes = require("./routes/contact.routes")
 
 function createApp() {
   const app = express()
@@ -33,6 +35,8 @@ function createApp() {
   app.use(productsRoutes)
   app.use(ordersRoutes)
   app.use(adminRoutes)
+  app.use(homeContentRoutes)
+  app.use(contactRoutes)
 
   // A production deployment can run the API and React single-page app from one
   // service. The fallback is deliberately registered after API routes so direct

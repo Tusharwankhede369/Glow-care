@@ -10,6 +10,11 @@ const storage = multer.diskStorage({
   filename: (_, file, cb) => cb(null, `${Date.now()}-${file.originalname.replace(/\s+/g, "-")}`),
 })
 
-const upload = multer({ storage })
+const imageTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/avif", "image/gif"])
+const upload = multer({
+  storage,
+  limits: { fileSize: 8 * 1024 * 1024, files: 8 },
+  fileFilter: (_, file, cb) => cb(null, imageTypes.has(file.mimetype)),
+})
 
 module.exports = { upload, uploadDir }

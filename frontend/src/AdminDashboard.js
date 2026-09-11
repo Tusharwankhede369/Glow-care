@@ -52,6 +52,7 @@ import {
 import axios from "axios"
 import "./CSS/admin.css"
 import { BASE_URL } from "./config"
+import { resolveMediaUrl } from "./utils/media"
 
 const fmtMoney = (n) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(
@@ -119,7 +120,7 @@ const AdminDashboard = () => {
     isNatural: false,
     isCrueltyFree: false,
     isVegan: false,
-    image: null,
+    image: [],
     description: "",
     status: "active",
   })
@@ -263,7 +264,7 @@ const AdminDashboard = () => {
   const handleInputChange = (e) => {
     const { name, value, files } = e.target
     if (name === "image") {
-      setFormData({ ...formData, [name]: files[0] })
+      setFormData({ ...formData, [name]: Array.from(files || []) })
     } else {
       setFormData({ ...formData, [name]: value })
     }
@@ -291,7 +292,7 @@ const AdminDashboard = () => {
       isNatural: false,
       isCrueltyFree: false,
       isVegan: false,
-      image: null,
+      image: [],
       description: "",
       status: "active",
     })
@@ -310,7 +311,7 @@ const AdminDashboard = () => {
         return
       }
 
-      if (!editingProduct && !formData.image) {
+      if (!editingProduct && formData.image.length === 0) {
         setError("Product image is required")
         setLoading(false)
         return
@@ -318,10 +319,11 @@ const AdminDashboard = () => {
 
       const formDataToSend = new FormData()
       Object.keys(formData).forEach((key) => {
-        if (formData[key] !== null && formData[key] !== "") {
+        if (key !== "image" && formData[key] !== null && formData[key] !== "") {
           formDataToSend.append(key, formData[key])
         }
       })
+      formData.image.forEach((file) => formDataToSend.append("images", file))
 
       if (editingProduct) {
         await axios.put(`${BASE_URL}/admin/products/${editingProduct._id}`, formDataToSend, {
@@ -371,7 +373,7 @@ const AdminDashboard = () => {
       isNatural: product.isNatural || false,
       isCrueltyFree: product.isCrueltyFree || false,
       isVegan: product.isVegan || false,
-      image: null,
+      image: [],
       description: product.description || "",
       status: product.status || "active",
     })
@@ -486,6 +488,9 @@ const AdminDashboard = () => {
             </button>
             <button type="button" className={activeSection === "products" ? "active" : ""} onClick={() => setActiveSection("products")}>
               <FaBoxOpen /> Products
+            </button>
+            <button type="button" onClick={() => navigate("/admin/content")}>
+              <FaImage /> Homepage content
             </button>
             <button type="button" className={activeSection === "orders" ? "active" : ""} onClick={() => setActiveSection("orders")}>
               <FaShoppingBag /> Orders
@@ -755,7 +760,7 @@ const AdminDashboard = () => {
                             <tr key={product._id}>
                               <td>
                                 <img
-                                  src={product.image ? `${BASE_URL}${product.image}` : "/placeholder.svg"}
+                                  src={resolveMediaUrl(product.primaryImage || product.image || product.images?.[0])}
                                   alt=""
                                   className="admin-dashboard-img-thumb"
                                   onError={(e) => {
@@ -1290,10 +1295,10 @@ const AdminDashboard = () => {
               </div>
               <Form.Group>
                 <Form.Label>
-                  Product image {!editingProduct && <span className="text-danger">*</span>}
+                  Product images {!editingProduct && <span className="text-danger">*</span>}
                 </Form.Label>
-                <Form.Control type="file" name="image" accept="image/jpeg,image/png,image/webp" onChange={handleInputChange} required={!editingProduct} />
-                <div className="admin-form-hint">{editingProduct ? "Leave empty to keep the current image." : "JPG, PNG or WebP — clear photo on neutral background works best."}</div>
+                <Form.Control type="file" name="image" multiple accept="image/jpeg,image/png,image/webp,image/avif" onChange={handleInputChange} required={!editingProduct} />
+                <div className="admin-form-hint">{formData.image.length ? `${formData.image.length} new image${formData.image.length > 1 ? "s" : ""} ready to upload.` : editingProduct ? "Add new photos or leave empty to keep the gallery." : "Choose up to 8 JPG, PNG, WebP, or AVIF images."}</div>
               </Form.Group>
             </section>
           </Modal.Body>
