@@ -22,6 +22,7 @@ const AdminLoginpro = () => {
       ...formData,
       [name]: value,
     })
+    if (error) setError("")
   }
 
   const handleSubmit = async (e) => {
@@ -30,7 +31,10 @@ const AdminLoginpro = () => {
     setLoading(true)
 
     try {
-      const response = await axios.post(`${BASE_URL}/admin/login`, formData)
+      const response = await axios.post(`${BASE_URL}/admin/login`, {
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password,
+      })
 
       // Store admin token
       localStorage.setItem("adminToken", response.data.token)
@@ -54,8 +58,9 @@ const AdminLoginpro = () => {
             <Card className="admin-login-card">
               <Card.Body className="p-5">
                 <header className="text-center mb-4">
-                  <h2 className="admin-title">Admin Login</h2>
-                  <p className="text-muted">Access your admin dashboard</p>
+                  <span className="admin-auth-eyebrow">GlowCare operations</span>
+                  <h2 className="admin-title">Administrator sign in</h2>
+                  <p className="text-muted">Use your authorised work account to continue.</p>
                 </header>
 
                 {error && <Alert variant="danger">{error}</Alert>}
@@ -70,6 +75,7 @@ const AdminLoginpro = () => {
                       value={formData.email}
                       onChange={handleChange}
                       required
+                      autoComplete="email"
                     />
                   </Form.Group>
 
@@ -82,6 +88,7 @@ const AdminLoginpro = () => {
                       value={formData.password}
                       onChange={handleChange}
                       required
+                      autoComplete="current-password"
                     />
                   </Form.Group>
 
@@ -92,7 +99,7 @@ const AdminLoginpro = () => {
 
                 <footer className="text-center mt-3">
                   <p className="mb-0">
-                    Don't have an admin account?{" "}
+                    Need an account for a new installation?{" "}
                     <Button variant="link" className="p-0" onClick={() => navigate("/admin/register")}>
                       Register here
                     </Button>

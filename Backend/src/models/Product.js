@@ -15,6 +15,15 @@ const productSchema = new mongoose.Schema(
     material: { type: String, default: "" },
     availability: { type: String, default: "In Stock" },
     image: { type: String, default: "" },
+    // `image` is retained for older storefront clients. New clients use `images`
+    // and `primaryImage` so a product can have an ordered gallery.
+    images: { type: [String], default: [] },
+    primaryImage: { type: String, default: "" },
+    sku: { type: String, default: "" },
+    variants: {
+      type: [{ name: String, value: String, sku: String, stock: Number }],
+      default: [],
+    },
     price: { type: Number, required: true },
     originalPrice: { type: Number, default: null },
     discount: { type: Number, default: 0 },

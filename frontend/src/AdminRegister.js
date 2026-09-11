@@ -13,6 +13,7 @@ const AdminRegister = () => {
     email: "",
     password: "",
     confirmPassword: "",
+    setupKey: "",
   })
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
@@ -25,6 +26,7 @@ const AdminRegister = () => {
       ...prev,
       [name]: value,
     }))
+    if (error) setError("")
   }
 
   const handleSubmit = async (e) => {
@@ -37,17 +39,18 @@ const AdminRegister = () => {
       return
     }
 
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters long")
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters long")
       return
     }
 
     setLoading(true)
     try {
       await axios.post(`${BASE_URL}/admin/register`, {
-        name: formData.name,
-        email: formData.email,
+        name: formData.name.trim(),
+        email: formData.email.trim().toLowerCase(),
         password: formData.password,
+        setupKey: formData.setupKey,
       })
 
       setSuccess("Admin account created successfully! Redirecting to login...")
@@ -70,8 +73,9 @@ const AdminRegister = () => {
             <Card className="admin-register-card">
               <Card.Body className="p-5">
                 <header className="text-center mb-4">
-                  <h2 className="admin-title">Admin Registration</h2>
-                  <p className="text-muted">Create your admin account</p>
+                  <span className="admin-auth-eyebrow">GlowCare operations</span>
+                  <h2 className="admin-title">Set up administrator access</h2>
+                  <p className="text-muted">This is available only during first-time setup.</p>
                 </header>
 
                 {error && <Alert variant="danger">{error}</Alert>}
@@ -87,6 +91,7 @@ const AdminRegister = () => {
                       value={formData.name}
                       onChange={handleChange}
                       required
+                      autoComplete="name"
                     />
                   </Form.Group>
 
@@ -99,6 +104,7 @@ const AdminRegister = () => {
                       value={formData.email}
                       onChange={handleChange}
                       required
+                      autoComplete="email"
                     />
                   </Form.Group>
 
@@ -113,9 +119,10 @@ const AdminRegister = () => {
                           value={formData.password}
                           onChange={handleChange}
                           required
-                          minLength={6}
+                          minLength={8}
+                          autoComplete="new-password"
                         />
-                        <Form.Text className="text-muted">Password must be at least 6 characters long</Form.Text>
+                        <Form.Text className="text-muted">Use at least 8 characters.</Form.Text>
                       </Form.Group>
                     </Col>
                     <Col md={6}>
@@ -128,11 +135,24 @@ const AdminRegister = () => {
                           value={formData.confirmPassword}
                           onChange={handleChange}
                           required
-                          minLength={6}
+                          minLength={8}
+                          autoComplete="new-password"
                         />
                       </Form.Group>
                     </Col>
                   </Row>
+
+                  <Form.Group className="mb-4" controlId="adminSetupKey">
+                    <Form.Label>Administrator setup key <span className="text-muted fw-normal">(required after first setup)</span></Form.Label>
+                    <Form.Control
+                      type="password"
+                      name="setupKey"
+                      placeholder="Enter the private setup key"
+                      value={formData.setupKey}
+                      onChange={handleChange}
+                      autoComplete="off"
+                    />
+                  </Form.Group>
 
                   <Button type="submit" className="w-100 admin-register-btn" disabled={loading}>
                     {loading ? "Creating Account..." : "Create Admin Account"}

@@ -1,6 +1,7 @@
 const User = require("../models/User")
 const { generateToken, sha256 } = require("../utils/tokens")
 const { sendMail, hasSmtpEnv } = require("../utils/mailer")
+const { sendSignupOtp, sendLoginOtp, signToken } = require("./auth.controller")
 
 function buildAppUrl(req, path) {
   const base = process.env.APP_BASE_URL || `${req.protocol}://${req.get("host")}`
@@ -61,6 +62,56 @@ async function verifyEmail(req, res) {
   return res.json({ message: "Email verified successfully" })
 }
 
+async function verifyEmailOtp(req, res) {
+  const email = (req.body.email || "").trim().toLowerCase()
+  const otp = String(req.body.otp || "").trim()
+  if (!email || !/^\d{6}$/.test(otp)) return res.status(400).json({ error: "Enter the six-digit verification code." })
+
+  const user = await User.findOne({
+    email,
+    emailOtpHash: sha256(otp),
+    emailOtpExpiresAt: { $gt: new Date() },
+  })
+  if (!user) return res.status(400).json({ error: "That code is invalid or has expired. Request a new code and try again." })
+
+  user.isEmailVerified = true
+  user.emailOtpHash = ""
+  user.emailOtpExpiresAt = null
+  await user.save()
+  return res.json({ message: "Email verified successfully. You can now sign in." })
+}
+
+async function resendEmailOtp(req, res) {
+  const email = (req.body.email || "").trim().toLowerCase()
+  if (!email) return res.status(400).json({ error: "Email is required" })
+  const user = await User.findOne({ email })
+  if (!user || user.isEmailVerified) return res.json({ message: "If verification is needed, a new code has been sent." })
+  await sendSignupOtp(user)
+  return res.json({ message: "A new verification code has been sent." })
+}
+
+async function verifyLoginOtp(req, res) {
+  const email = (req.body.email || "").trim().toLowerCase()
+  const otp = String(req.body.otp || "").trim()
+  if (!email || !/^\d{6}$/.test(otp)) return res.status(400).json({ error: "Enter the six-digit sign-in code." })
+  const user = await User.findOne({ email, loginOtpHash: sha256(otp), loginOtpExpiresAt: { $gt: new Date() } })
+  if (!user) return res.status(400).json({ error: "That code is invalid or has expired. Request a new code and try again." })
+  user.loginOtpHash = ""
+  user.loginOtpExpiresAt = null
+  await user.save()
+  return res.json({ token: signToken(user) })
+}
+
+async function resendLoginOtp(req, res) {
+  const email = (req.body.email || "").trim().toLowerCase()
+  if (!email) return res.status(400).json({ error: "Email is required" })
+  const user = await User.findOne({ email, isEmailVerified: true })
+  if (!user) return res.status(400).json({ error: "Unable to send a sign-in code for this account." })
+  const smtpConfigured = await sendLoginOtp(user)
+  if (!smtpConfigured) return res.status(503).json({ error: "Email delivery is not configured." })
+  return res.json({ message: "A new sign-in code has been sent." })
+}
+
 async function forgotPassword(req, res) {
   const { email } = req.body
   const normalizedEmail = (email || "").trim().toLowerCase()
@@ -96,7 +147,7 @@ async function resetPassword(req, res) {
   if (!token || !normalizedEmail || !newPassword) {
     return res.status(400).json({ error: "token, email, newPassword are required" })
   }
-  if (String(newPassword).length < 6) return res.status(400).json({ error: "Password must be at least 6 characters" })
+  if (String(newPassword).length < 8) return res.status(400).json({ error: "Password must be at least 8 characters" })
 
   const tokenHash = sha256(token)
   const user = await User.findOne({
@@ -114,5 +165,5 @@ async function resetPassword(req, res) {
   return res.json({ message: "Password reset successfully" })
 }
 
-module.exports = { requestEmailVerification, verifyEmail, forgotPassword, resetPassword }
+module.exports = { requestEmailVerification, verifyEmail, verifyEmailOtp, resendEmailOtp, verifyLoginOtp, resendLoginOtp, forgotPassword, resetPassword }
 

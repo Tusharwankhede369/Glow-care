@@ -4,6 +4,7 @@ import axios from "axios"
 import { Link, useSearchParams, useNavigate } from "react-router-dom"
 import { DotLottieReact } from "@lottiefiles/dotlottie-react"
 import { BASE_URL } from "../config"
+import { FaEye, FaEyeSlash } from "react-icons/fa"
 import "../CSS/login.css"
 
 export default function ResetPassword() {
@@ -17,6 +18,7 @@ export default function ResetPassword() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [message, setMessage] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
 
   const submit = async (e) => {
     e.preventDefault()
@@ -72,14 +74,15 @@ export default function ResetPassword() {
             <Form.Label style={{ fontSize: 13 }} className="text-muted">
               New password
             </Form.Label>
-            <Form.Control
-              type="password"
+            <div className="gc-password-field"><Form.Control
+              type={showPassword ? "text" : "password"}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              minLength={6}
+              minLength={8}
               required
               disabled={!token || !email}
-            />
+            /><button type="button" className="gc-password-toggle" onClick={() => setShowPassword((show) => !show)} aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? <FaEyeSlash /> : <FaEye />}</button></div>
+            <Form.Text className="text-muted">Use at least 8 characters.</Form.Text>
           </Form.Group>
 
           <Button className="w-100" type="submit" disabled={loading || !token || !email}>

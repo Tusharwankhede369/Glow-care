@@ -8,15 +8,15 @@ function escapeRegex(str) {
 async function getFilterOptions(_, res) {
   const [categories, brands, subcategories, genders, skinTypes, hairTypes, sizes, minPriceRow, maxPriceRow] =
     await Promise.all([
-      Product.distinct("category"),
-      Product.distinct("brand"),
-      Product.distinct("subcategory"),
-      Product.distinct("gender"),
-      Product.distinct("skinType"),
-      Product.distinct("hairType"),
-      Product.distinct("size"),
-      Product.findOne().sort({ price: 1 }).select("price -_id"),
-      Product.findOne().sort({ price: -1 }).select("price -_id"),
+      Product.distinct("category", { status: "active" }),
+      Product.distinct("brand", { status: "active" }),
+      Product.distinct("subcategory", { status: "active" }),
+      Product.distinct("gender", { status: "active" }),
+      Product.distinct("skinType", { status: "active" }),
+      Product.distinct("hairType", { status: "active" }),
+      Product.distinct("size", { status: "active" }),
+      Product.findOne({ status: "active" }).sort({ price: 1 }).select("price -_id"),
+      Product.findOne({ status: "active" }).sort({ price: -1 }).select("price -_id"),
     ])
 
   return res.json({
@@ -53,7 +53,7 @@ async function listProducts(req, res) {
     page = 1,
   } = req.query
 
-  const query = {}
+  const query = { status: "active" }
   if (category) query.category = new RegExp(`^${escapeRegex(category)}$`, "i")
   if (brand) query.brand = brand
   if (subcategory) query.subcategory = subcategory
@@ -94,7 +94,7 @@ async function listProducts(req, res) {
 }
 
 async function getProduct(req, res) {
-  const product = await Product.findById(req.params.id)
+  const product = await Product.findOne({ _id: req.params.id, status: "active" })
   if (!product) return res.status(404).json({ error: "Product not found" })
   return res.json(product)
 }

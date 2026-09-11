@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { Container, Row, Col, Form, Badge, Card, Spinner, Alert, Button } from "react-bootstrap"
 import { FaPlus, FaMinus, FaShoppingCart, FaFilter } from "react-icons/fa"
-import { Link, useNavigate, useSearchParams } from "react-router-dom"
+import { Link, useSearchParams } from "react-router-dom"
 import axios from "axios"
 import "./CSS/shop.css"
 import { BASE_URL } from "./config"
@@ -47,8 +47,7 @@ const Shop = ({ cart, setCart }) => {
     hasPrev: false,
     hasNext: false,
   })
-
-  const navigate = useNavigate()
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
   useEffect(() => {
     const cat = searchParams.get("category")
@@ -139,37 +138,18 @@ const Shop = ({ cart, setCart }) => {
     setPagination((prev) => ({ ...prev, currentPage: 1 }))
   }
 
-  // Compute auth state to disable cart controls when not logged in (UI + safety)
-  const isAuthed = Boolean(typeof window !== "undefined" && localStorage.getItem("token"))
+  const activeFilters = Object.entries(filters).filter(([key, value]) => value && !["isNatural", "isCrueltyFree", "isVegan"].includes(key))
 
-  // Helper function to ensure authentication or redirect
-  const ensureAuthedOrRedirect = (redirectTo) => {
-    const token = localStorage.getItem("token")
-    if (!token) {
-      navigate("/login", { replace: true, state: { from: { pathname: redirectTo } } })
-      return false
-    }
-    return true
-  }
-
-  // Guard add to cart by auth
   const addToCart = (productId) => {
-    if (!ensureAuthedOrRedirect("/shop")) return
-    console.log("Adding to cart:", productId) // Debug log
     setCart((prevCart) => {
       const newCart = { ...prevCart }
       newCart[productId] = (newCart[productId] || 0) + 1
-      // Save to localStorage
       localStorage.setItem("cart", JSON.stringify(newCart))
-      console.log("Cart updated:", newCart) // Debug log
       return newCart
     })
   }
 
-  // Guard remove from cart by auth
   const removeFromCart = (productId) => {
-    if (!ensureAuthedOrRedirect("/shop")) return
-    console.log("Removing from cart:", productId) // Debug log
     setCart((prevCart) => {
       const newCart = { ...prevCart }
       if (newCart[productId] > 0) {
@@ -178,9 +158,7 @@ const Shop = ({ cart, setCart }) => {
           delete newCart[productId]
         }
       }
-      // Save to localStorage
       localStorage.setItem("cart", JSON.stringify(newCart))
-      console.log("Cart updated:", newCart) // Debug log
       return newCart
     })
   }
@@ -193,6 +171,12 @@ const Shop = ({ cart, setCart }) => {
   return (
     <main className="enhanced-shop-page">
       <Container>
+        <div className="shop-mobile-toolbar">
+          <Button variant="outline-primary" onClick={() => setFiltersOpen((open) => !open)}>
+            <FaFilter className="me-2" /> {filtersOpen ? "Hide filters" : "Show filters"}
+          </Button>
+          {activeFilters.length > 0 && <span>{activeFilters.length} active</span>}
+        </div>
         <Link to="/cart" className="cart-indicator">
           <FaShoppingCart />
           <Badge pill bg="danger">
@@ -202,7 +186,7 @@ const Shop = ({ cart, setCart }) => {
 
         <Row className="align-items-start">
           {/* Sidebar Filters */}
-          <Col lg={3} className="sidebar">
+          <Col lg={3} className={`sidebar ${filtersOpen ? "is-open" : ""}`}>
             <Card className="filter-card">
               <Card.Header className="d-flex justify-content-between align-items-center">
                 <h5 className="mb-0">
@@ -305,9 +289,10 @@ const Shop = ({ cart, setCart }) => {
             {/* Results Header */}
                 <section className="results-header mb-4">
               <h4>Products ({pagination.totalProducts ?? products.length} found)</h4>
-              {Object.entries(filters).some(([key, val]) => val && key !== "isNatural" && key !== "isCrueltyFree" && key !== "isVegan") && (
-                <p className="text-muted">Showing filtered results</p>
-              )}
+              {activeFilters.length > 0 && <div className="active-filter-chips" aria-label="Active filters">
+                {activeFilters.map(([key, value]) => <button type="button" key={key} onClick={() => { setFilters((prev) => ({ ...prev, [key]: "" })); setPagination((prev) => ({ ...prev, currentPage: 1 })) }}>{key}: {value} <span aria-hidden>×</span></button>)}
+                <button type="button" className="clear-filter-chip" onClick={clearFilters}>Clear all</button>
+              </div>}
             </section>
 
             {loading ? (
@@ -343,7 +328,7 @@ const Shop = ({ cart, setCart }) => {
                         )}
                         <Card.Img
                           variant="top"
-                          src={resolveMediaUrl(product.image)}
+                          src={resolveMediaUrl(product.primaryImage || product.image || product.images?.[0])}
                           alt={product.name}
                           className="product-image"
                           onError={(e) => {
@@ -388,8 +373,8 @@ const Shop = ({ cart, setCart }) => {
                               className="cart-btn remove-btn"
                               aria-label="Decrease quantity"
                               onClick={() => removeFromCart(product._id)}
-                              disabled={!isAuthed || !cart[product._id]}
-                              title={isAuthed ? "Decrease quantity" : "Login to modify cart"}
+                              disabled={!cart[product._id]}
+                              title="Decrease quantity"
                             >
                               <FaMinus />
                             </Button>
@@ -400,8 +385,7 @@ const Shop = ({ cart, setCart }) => {
                               className="cart-btn add-btn"
                               aria-label="Increase quantity"
                               onClick={() => addToCart(product._id)}
-                              disabled={!isAuthed}
-                              title={isAuthed ? "Add to cart" : "Login to add to cart"}
+                              title="Add to cart"
                             >
                               <FaPlus />
                             </Button>

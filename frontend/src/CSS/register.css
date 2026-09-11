@@ -1,99 +1,95 @@
-/* Scoped to registration page only — never style global `body` here (breaks site scroll after visiting /register). */
 .register-page {
-  font-family: "Segoe UI", sans-serif;
-  margin: 0;
   min-height: 100vh;
-  background: linear-gradient(135deg, #74ebd5 0%, #acb6e5 100%);
-  overflow-x: hidden;
-  overflow-y: auto;
+  background: linear-gradient(135deg, #f5d9c3 0%, #c49b83 100%);
+  color: #2c211b;
+}
+
+.register-stage {
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem 1rem;
-  box-sizing: border-box;
+  padding: 2.5rem 1.25rem;
 }
 
 .register-box {
-  background-color: #ffffffcc;
-  max-width: 500px;
-  border-radius: 12px;
-  padding: 3rem 2.5rem;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  animation: fadeInScale 0.6s ease forwards;
+  display: grid;
+  grid-template-columns: minmax(390px, 1.08fr) minmax(320px, 0.92fr);
+  width: min(100%, 900px);
+  min-height: 660px;
+  overflow: hidden;
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  border-radius: 28px;
+  background: #f8f6f5;
+  box-shadow: 0 24px 60px rgba(78, 48, 33, 0.2);
+  animation: register-rise 500ms ease both;
 }
 
-@keyframes fadeInScale {
-  0% {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
+.register-form-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2.5rem clamp(2rem, 5vw, 4rem);
 }
 
-.register-title {
+.register-brand {
+  align-self: flex-start;
+  margin-bottom: 1.5rem;
+  color: #72513d;
+  font-size: 0.72rem;
   font-weight: 800;
-  font-size: 28px;
-  color: #333;
+  letter-spacing: 0.16em;
 }
+
+.register-heading { margin-bottom: 1.35rem; }
+.register-kicker { margin: 0 0 0.55rem; color: #927662; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.register-heading h1 { margin: 0 0 0.4rem; color: #2c211b; font-family: var(--gc-font-display); font-size: clamp(1.9rem, 4vw, 2.45rem); font-weight: 500; letter-spacing: -0.03em; }
+.register-heading > p:last-child { max-width: 330px; margin: 0; color: #786b63; font-size: 0.8rem; line-height: 1.5; }
+
+.register-field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.register-field { margin-bottom: 0.75rem; }
+.register-field-last { margin-bottom: 1.25rem; }
+.register-field span { color: #a6968c; font-weight: 400; }
+.register-box .form-label { display: block; margin-bottom: 0.35rem; color: #59483e; font-size: 0.68rem; font-weight: 600; }
 
 .custom-input {
-  height: 48px;
-  font-size: 15px;
-  border-radius: 8px;
-  background-color: #fff;
-  border: 1.5px solid #ddd;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  height: 42px;
+  border: 1px solid transparent !important;
+  border-radius: 999px !important;
+  padding: 0 1rem !important;
+  background: #fff !important;
+  color: #3c2e26;
+  font-size: 0.76rem;
+  box-shadow: 0 4px 14px rgba(82, 57, 42, 0.06);
 }
 
-.custom-input:focus {
-  outline: none;
-  border-color: #fa8072;
-  box-shadow: 0 0 8px rgba(250, 128, 114, 0.5);
-  background-color: #fff;
-}
+.custom-input::placeholder { color: #b5aaa3; }
+.custom-input:focus { border-color: #a5795d !important; box-shadow: 0 0 0 3px rgba(165, 121, 93, 0.16) !important; }
+.gc-password-field { position: relative; }
+.gc-password-field .custom-input { padding-right: 3rem !important; }
+.gc-password-toggle { position: absolute; top: 50%; right: 0.8rem; display: grid; width: 1.8rem; height: 1.8rem; place-items: center; border: 0; border-radius: 50%; background: transparent; color: #9b897d; transform: translateY(-50%); }
+.gc-password-toggle:hover { background: #f2e7df; color: #6d4b37; }
 
-.btn-custom {
-  background-color: #fa8072;
-  color: white;
-  border-radius: 25px;
-  padding: 10px 35px;
-  border: none;
-  font-weight: 600;
-  font-size: 16px;
-  transition: background-color 0.4s ease, transform 0.2s ease;
-}
+.btn-custom { min-height: 43px; border: 0 !important; border-radius: 999px !important; background: #806049 !important; color: #fff !important; font-size: 0.78rem; font-weight: 600; box-shadow: 0 8px 16px rgba(100, 69, 48, 0.18); }
+.btn-custom:hover, .btn-custom:focus { background: #694b38 !important; box-shadow: 0 10px 20px rgba(100, 69, 48, 0.26); transform: translateY(-1px); }
+.register-login-link { margin-top: 1rem; color: #998a81; font-size: 0.72rem; text-align: center; }
+.register-login-link a { color: #76543f; font-weight: 600; text-decoration: none; }
+.register-login-link a:hover { color: #a06f4e; text-decoration: underline; }
+.register-box .alert { border: 0; border-radius: 12px; font-size: 0.72rem; }
 
-.btn-custom:hover {
-  background-color: #f97161;
-  transform: scale(1.05);
-}
+.register-visual { position: relative; min-height: 100%; overflow: hidden; background: #bda593 url("https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=1000&q=85") center / cover; }
+.register-visual::after { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(61, 37, 25, 0.03), rgba(61, 37, 25, 0.3)); content: ""; }
+.register-visual__copy { position: absolute; z-index: 1; right: 2rem; bottom: 2rem; left: 2rem; color: #fffaf5; text-shadow: 0 2px 14px rgba(54, 34, 23, 0.25); }
+.register-visual__copy span { display: block; margin-bottom: 0.5rem; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.2em; }
+.register-visual__copy strong { display: block; font-family: var(--gc-font-display); font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 400; line-height: 0.95; }
+.register-visual__copy small { display: block; max-width: 190px; margin-top: 1rem; font-size: 0.75rem; line-height: 1.45; }
 
-.register-page a.text-decoration-none {
-  color: #fa8072;
-  font-weight: 500;
-  transition: color 0.3s ease;
-}
+@keyframes register-rise { from { opacity: 0; transform: translateY(16px) scale(0.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
-.register-page a.text-decoration-none:hover {
-  color: #7cc242;
-  text-decoration: underline;
-}
-
-.register-page .alert {
-  animation: slideDownFade 0.5s ease forwards;
-  border-radius: 8px;
-}
-
-@keyframes slideDownFade {
-  0% {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+@media (max-width: 700px) {
+  .register-stage { padding: 1rem; }
+  .register-box { display: block; min-height: 0; border-radius: 22px; }
+  .register-form-panel { min-height: 700px; padding: 2rem 1.5rem; }
+  .register-visual { display: none; }
+  .register-field-grid { grid-template-columns: 1fr; gap: 0; }
 }
